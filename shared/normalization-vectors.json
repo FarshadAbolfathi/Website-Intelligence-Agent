@@ -1,0 +1,44 @@
+{
+  "_comment": "Language contract shared by the Python engine and the PHP plugin. Both test suites load this file, so the two editions cannot drift apart.",
+  "normalize": [
+    { "in": "كتاب", "out": "کتاب", "why": "Arabic kaf -> Persian kaf" },
+    { "in": "علي", "out": "علی", "why": "Arabic yeh -> Persian yeh" },
+    { "in": "موسى", "out": "موسی", "why": "alef maksura -> yeh" },
+    { "in": "مدرسة", "out": "مدرسه", "why": "teh marbuta -> heh" },
+    { "in": "خانۀ", "out": "خانه", "why": "heh with yeh above -> heh" },
+    { "in": "أحمد إبراهيم آدم", "out": "احمد ابراهیم ادم", "why": "hamza forms and madda -> bare alef" },
+    { "in": "مؤمن", "out": "مومن", "why": "waw with hamza -> waw" },
+    { "in": "سَلامٌ", "out": "سلام", "why": "harakat removed" },
+    { "in": "ســـلام", "out": "سلام", "why": "kashida removed" },
+    { "in": "۱۲۳۴۵", "out": "12345", "why": "Persian digits" },
+    { "in": "١٢٣٤٥", "out": "12345", "why": "Arabic digits" },
+    { "in": "می‌خواهم", "out": "می خواهم", "why": "ZWNJ acts as a space" },
+    { "in": "HELLO   World", "out": "hello world", "why": "case and whitespace" },
+    { "in": "قیمت:  ۲٬۵۰۰٬۰۰۰ تومان!", "out": "قیمت 2500000 تومان", "why": "thousands separators and punctuation" },
+    { "in": "1,250.50 USD", "out": "1250.50 usd", "why": "latin thousands separator kept decimal" },
+    { "in": "‏‎سلام", "out": "سلام", "why": "direction marks removed" }
+  ],
+  "detect_language": [
+    { "in": "این فروشگاه چه محصولاتی دارد؟", "out": "fa" },
+    { "in": "قیمت این گوشی چقدر است", "out": "fa" },
+    { "in": "چطور می‌توانم سفارش ثبت کنم؟", "out": "fa" },
+    { "in": "شرایط ارسال و گارانتی چیه؟", "out": "fa" },
+    { "in": "ما هي المنتجات المتوفرة في هذا المتجر؟", "out": "ar" },
+    { "in": "كم سعر هذا المنتج", "out": "ar" },
+    { "in": "كيف يمكنني إتمام الطلب؟", "out": "ar" },
+    { "in": "هل يوجد ضمان على الأجهزة", "out": "ar" },
+    { "in": "What products does this store sell?", "out": "en" },
+    { "in": "How much is this laptop?", "out": "en" },
+    { "in": "سلام", "out": "fa" },
+    { "in": "مرحبا", "out": "ar" },
+    { "in": "hello", "out": "en" }
+  ],
+  "tokens_equal": [
+    { "a": "كتاب‌های علمي", "b": "کتاب های علمی", "why": "spelling and spacing variants index identically" },
+    { "a": "كتابها", "b": "کتاب ها", "why": "attached and detached plural" },
+    { "a": "گوشی‌ها", "b": "گوشي", "why": "Persian plural suffix folded" },
+    { "a": "laptops", "b": "laptop", "why": "English plural folded" },
+    { "a": "المنتجات", "b": "منتجات", "why": "Arabic definite article folded" },
+    { "a": "۱۲۰۰", "b": "1200", "why": "digits folded" }
+  ]
+}

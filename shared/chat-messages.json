@@ -1,0 +1,93 @@
+{
+ "text": {
+  "fa": {
+   "not_found": "متأسفانه در اطلاعات این سایت پاسخی برای این سؤال پیدا نکردم و نمی‌خواهم حدس بزنم. می‌توانید سؤال را طور دیگری بپرسید یا با پشتیبانی سایت تماس بگیرید.",
+   "greeting": "سلام! من دستیار این سایت هستم. درباره محصولات، خدمات یا شرایط سایت هر سؤالی دارید بپرسید.",
+   "thanks": "خواهش می‌کنم. اگر سؤال دیگری داشتید در خدمتم.",
+   "guard": "من فقط درباره محتوای این سایت پاسخ می‌دهم و به تنظیمات داخلی یا اطلاعات محرمانه دسترسی ندارم و آن‌ها را اعلام نمی‌کنم.",
+   "offtopic_hint": "این پاسخ بر اساس محتوای سایت است:",
+   "price": "قیمت «{name}»: {price}",
+   "stock_in": "«{name}» موجود است.",
+   "stock_out": "«{name}» در حال حاضر موجود نیست.",
+   "stock_pre": "«{name}» به‌صورت پیش‌سفارش عرضه می‌شود.",
+   "stock_unknown": "وضعیت موجودی «{name}» در سایت مشخص نشده است.",
+   "as_of": "(طبق آخرین بررسی سایت در تاریخ {date})",
+   "stale": "این اطلاعات ممکن است تغییر کرده باشد؛ لطفاً در صفحه محصول بررسی کنید.",
+   "no_price": "قیمت «{name}» در سایت به‌صورت عمومی درج نشده است.",
+   "compare_head": "مقایسه «{a}» و «{b}»:",
+   "from_source": "طبق «{title}»:",
+   "other_lang": "این پاسخ از محتوای سایت به زبان اصلی آن آورده شده است:",
+   "products_head": "برخی از محصولات این سایت:"
+  },
+  "ar": {
+   "not_found": "عذرا، لم أجد إجابة عن هذا السؤال في معلومات هذا الموقع ولا أريد التخمين. يمكنك إعادة صياغة السؤال أو التواصل مع دعم الموقع.",
+   "greeting": "مرحبا! أنا مساعد هذا الموقع. اسألني عن المنتجات أو الخدمات أو شروط الموقع.",
+   "thanks": "على الرحب والسعة. أنا هنا إذا كان لديك سؤال آخر.",
+   "guard": "أجيب فقط عن محتوى هذا الموقع، وليس لدي وصول إلى الإعدادات الداخلية أو المعلومات السرية ولا أفصح عنها.",
+   "offtopic_hint": "هذه الإجابة مبنية على محتوى الموقع:",
+   "price": "سعر «{name}»: {price}",
+   "stock_in": "«{name}» متوفر.",
+   "stock_out": "«{name}» غير متوفر حاليا.",
+   "stock_pre": "«{name}» متاح للطلب المسبق.",
+   "stock_unknown": "حالة توفر «{name}» غير محددة في الموقع.",
+   "as_of": "(حسب آخر فحص للموقع بتاريخ {date})",
+   "stale": "قد تكون هذه المعلومات قد تغيرت؛ يرجى التحقق من صفحة المنتج.",
+   "no_price": "سعر «{name}» غير منشور في الموقع.",
+   "compare_head": "مقارنة بين «{a}» و«{b}»:",
+   "from_source": "بحسب «{title}»:",
+   "other_lang": "هذه الإجابة مأخوذة من محتوى الموقع بلغته الأصلية:",
+   "products_head": "بعض منتجات هذا الموقع:"
+  },
+  "en": {
+   "not_found": "Sorry, I could not find an answer to that in this site's information, and I don't want to guess. Try rephrasing, or contact the site's support team.",
+   "greeting": "Hello! I'm this site's assistant. Ask me about its products, services or policies.",
+   "thanks": "You're welcome. I'm here if you have another question.",
+   "guard": "I only answer questions about this site's content. I have no access to internal settings or confidential data and will not disclose them.",
+   "offtopic_hint": "This answer is based on the site's content:",
+   "price": "The price of “{name}” is {price}.",
+   "stock_in": "“{name}” is in stock.",
+   "stock_out": "“{name}” is currently out of stock.",
+   "stock_pre": "“{name}” is available for pre-order.",
+   "stock_unknown": "The site does not state whether “{name}” is in stock.",
+   "as_of": "(as of the site's last check on {date})",
+   "stale": "This may have changed; please check the product page.",
+   "no_price": "The site does not publish a price for “{name}”.",
+   "compare_head": "Comparing “{a}” and “{b}”:",
+   "from_source": "According to “{title}”:",
+   "other_lang": "This answer is quoted from the site's content in its original language:",
+   "products_head": "Some products on this site:"
+  }
+ },
+ "currency": {
+  "IRT": {
+   "fa": "تومان",
+   "ar": "تومان",
+   "en": "Toman"
+  },
+  "IRR": {
+   "fa": "ریال",
+   "ar": "ريال",
+   "en": "Rial"
+  },
+  "AED": {
+   "fa": "درهم",
+   "ar": "درهم",
+   "en": "AED"
+  },
+  "SAR": {
+   "fa": "ریال سعودی",
+   "ar": "ريال",
+   "en": "SAR"
+  },
+  "USD": {
+   "fa": "دلار",
+   "ar": "دولار",
+   "en": "USD"
+  },
+  "EUR": {
+   "fa": "یورو",
+   "ar": "يورو",
+   "en": "EUR"
+  }
+ }
+}

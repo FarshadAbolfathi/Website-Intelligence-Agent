@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+*.egg-info/
+node_modules/
+frontend/dist/
+dist/
+.env
+*.sqlite
+*.sqlite3
+.DS_Store
+deployment/docker/wp-test/data/
