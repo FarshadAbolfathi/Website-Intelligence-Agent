@@ -137,14 +137,16 @@ class ChatEngine:
         query = self._resolve_followup(question, history, context_doc_id, scope)
         retrieval = self.retriever.search(scope, query, limit=5)
         hits = [h for h in retrieval.hits if h.corpus == Corpus.OWN.value]  # defence in depth
-        if not hits or not retrieval.confident:
-            return self._not_found(lang, retrieval.mode, context_doc_id)
-
-        if _COMPARE.search(normalized):
+        # Each product holds only part of a comparison's words, so the gate would refuse it. Requiring two
+        # products that are really named in the question is the stricter check here.
+        if hits and _COMPARE.search(normalized):
             compared = self._compare(scope, hits, query, lang)
             if compared:
                 compared.retrieval_mode = retrieval.mode
                 return compared
+
+        if not hits or not retrieval.confident:
+            return self._not_found(lang, retrieval.mode, context_doc_id)
 
         if wants_price or wants_stock:
             structured = self._product_fact(scope, hits, query, lang, wants_price, wants_stock, context_doc_id)
@@ -274,7 +276,8 @@ class ChatEngine:
         products: dict[int, ChunkHit] = {}
         for hit in hits:
             product = hit.structured.get("product") if hit.content_type == "product" else None
-            if product and set(tokenize(product.get("name") or hit.title)) & q_tokens:
+            name = set(tokenize(product.get("name") or hit.title)) if product else set()
+            if name and len(name & q_tokens) / len(name) >= 0.5:
                 products.setdefault(hit.doc_id, hit)
         if len(products) < 2:
             return None

@@ -18,7 +18,7 @@ def test_token_equivalence_vectors(vectors):
         assert tokenize(case["a"]) == tokenize(case["b"]), case["why"]
 
 
-@pytest.mark.parametrize("a,b", [("۲٬۵۰۰٬۰۰۰ تومان", "2500000"), ("٢٥٠٠", "2500"), ("1,250.50", "1250.50")])
+@pytest.mark.parametrize("a,b", [("۲٬۵۰۰٬۰۰۰ تومان", "2500000"), ("٢٥٠٠", "2500"), ("1,250.50", "1250.5"), ("999.00", "999")])
 def test_numbers_fold_across_scripts(a, b):
     assert b in numbers_in(a)
 

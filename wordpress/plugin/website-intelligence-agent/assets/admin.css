@@ -1,0 +1,10 @@
+.wia .wia-card{background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:14px 18px;margin:16px 0;max-width:1000px}
+.wia .wia-card h2{margin:.4em 0 .7em;font-size:15px}
+.wia .wia-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:16px 0;max-width:1000px}
+.wia .wia-stat{background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:12px 16px}
+.wia .wia-stat b{display:block;font-size:24px;margin-top:4px}
+.wia .wia-answer{background:#f6f7f7;border-radius:6px;padding:10px 14px;margin:12px 0}
+.wia .wia-msg{margin:6px 0;padding:8px 12px;border-radius:8px;max-width:80%;line-height:1.8}
+.wia .wia-msg small{display:block;opacity:.65;font-size:11px}
+.wia .wia-user{background:#2271b1;color:#fff;margin-inline-start:auto}
+.wia .wia-assistant{background:#f0f0f1}

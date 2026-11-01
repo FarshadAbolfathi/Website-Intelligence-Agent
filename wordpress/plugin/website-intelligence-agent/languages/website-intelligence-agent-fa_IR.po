@@ -1,0 +1,246 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: fa_IR\nPlural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Site Assistant"
+msgstr "دستیار سایت"
+
+msgid "Scan finished."
+msgstr "بررسی سایت تمام شد."
+
+msgid "The scan stopped because of a connection error. It will continue in the background."
+msgstr "بررسی به‌دلیل خطای ارتباطی متوقف شد و در پس‌زمینه ادامه پیدا می‌کند."
+
+msgid "Status"
+msgstr "وضعیت"
+
+msgid "Knowledge"
+msgstr "دانش"
+
+msgid "Questions & answers"
+msgstr "پرسش و پاسخ"
+
+msgid "Chat widget"
+msgstr "ویجت گفتگو"
+
+msgid "Conversations"
+msgstr "گفتگوها"
+
+msgid "Advanced"
+msgstr "پیشرفته"
+
+msgid "Saved."
+msgstr "ذخیره شد."
+
+msgid "Lite edition: the assistant finds and quotes your site's own text and reads prices and stock live from WooCommerce. It does not run a language model and does not write new sentences. Nothing is sent to any outside service."
+msgstr "نسخه Lite: دستیار متن همین سایت را پیدا و نقل می‌کند و قیمت و موجودی را لحظه‌ای از ووکامرس می‌خواند. مدل زبانی اجرا نمی‌کند و جمله جدید نمی‌سازد. هیچ داده‌ای به سرویس بیرونی ارسال نمی‌شود."
+
+msgid "Documents learned"
+msgstr "اسناد یادگرفته‌شده"
+
+msgid "Text sections indexed"
+msgstr "بخش‌های متنی ایندکس‌شده"
+
+msgid "Duplicates ignored"
+msgstr "تکراری‌های نادیده‌گرفته‌شده"
+
+msgid "Removed"
+msgstr "حذف‌شده"
+
+msgid "Learning"
+msgstr "یادگیری"
+
+msgid "A scan is running…"
+msgstr "بررسی سایت در حال انجام است…"
+
+msgid "Last scan finished: %s"
+msgstr "پایان آخرین بررسی: %s"
+
+msgid "No scan has run yet."
+msgstr "هنوز بررسی‌ای انجام نشده است."
+
+msgid "Scan the site now"
+msgstr "همین حالا سایت را بررسی کن"
+
+msgid "What the assistant reads"
+msgstr "دستیار چه چیزهایی را می‌خواند"
+
+msgid "Content type"
+msgstr "نوع محتوا"
+
+msgid "Published"
+msgstr "منتشرشده"
+
+msgid "Learned"
+msgstr "یادگرفته‌شده"
+
+msgid "Enabled"
+msgstr "فعال"
+
+msgid "WooCommerce detected: prices and stock are read live."
+msgstr "ووکامرس شناسایی شد: قیمت و موجودی لحظه‌ای خوانده می‌شود."
+
+msgid "WooCommerce is not active."
+msgstr "ووکامرس فعال نیست."
+
+msgid "Answers are produced on this server only."
+msgstr "پاسخ‌ها فقط روی همین سرور تولید می‌شوند."
+
+msgid "Questions are forwarded to your self-hosted engine."
+msgstr "پرسش‌ها به موتور اختصاصی شما فرستاده می‌شوند."
+
+msgid "New %1$d, updated %2$d, unchanged %3$d, removed %4$d, errors %5$d"
+msgstr "جدید %1$d، به‌روزشده %2$d، بدون تغییر %3$d، حذف‌شده %4$d، خطا %5$d"
+
+msgid "Test a question"
+msgstr "آزمایش یک سؤال"
+
+msgid "Ask"
+msgstr "بپرس"
+
+msgid "score"
+msgstr "امتیاز"
+
+msgid "coverage"
+msgstr "پوشش"
+
+msgid "Latest documents"
+msgstr "آخرین اسناد"
+
+msgid "Title"
+msgstr "عنوان"
+
+msgid "Type"
+msgstr "نوع"
+
+msgid "Language"
+msgstr "زبان"
+
+msgid "Checked"
+msgstr "بررسی‌شده در"
+
+msgid "Add a question and answer"
+msgstr "افزودن پرسش و پاسخ"
+
+msgid "Your own answers are used before anything else. Keywords are optional, comma separated."
+msgstr "پاسخ‌های شما پیش از هر چیز دیگری استفاده می‌شوند. کلیدواژه‌ها اختیاری‌اند و با ویرگول جدا می‌شوند."
+
+msgid "Question"
+msgstr "پرسش"
+
+msgid "Answer"
+msgstr "پاسخ"
+
+msgid "Keywords"
+msgstr "کلیدواژه‌ها"
+
+msgid "Any"
+msgstr "همه"
+
+msgid "Add"
+msgstr "افزودن"
+
+msgid "Delete"
+msgstr "حذف"
+
+msgid "Show the chat widget on the site"
+msgstr "ویجت گفتگو در سایت نمایش داده شود"
+
+msgid "Color"
+msgstr "رنگ"
+
+msgid "Position"
+msgstr "موقعیت"
+
+msgid "Right"
+msgstr "راست"
+
+msgid "Left"
+msgstr "چپ"
+
+msgid "Default language"
+msgstr "زبان پیش‌فرض"
+
+msgid "Same as the site"
+msgstr "مانند سایت"
+
+msgid "Logo or avatar URL (https)"
+msgstr "آدرس لوگو یا آواتار (https)"
+
+msgid "Show answer sources"
+msgstr "منابع پاسخ نمایش داده شود"
+
+msgid "Welcome message"
+msgstr "پیام خوشامد"
+
+msgid "Message when no answer is found"
+msgstr "پیام عدم یافتن پاسخ"
+
+msgid "Save"
+msgstr "ذخیره"
+
+msgid "← Back to list"
+msgstr "بازگشت به فهرست"
+
+msgid "Questions without an answer"
+msgstr "پرسش‌های بدون پاسخ"
+
+msgid "Add content or a question and answer for these."
+msgstr "برای این‌ها محتوا یا پرسش و پاسخ اضافه کنید."
+
+msgid "None yet."
+msgstr "هنوز موردی نیست."
+
+msgid "Last activity"
+msgstr "آخرین فعالیت"
+
+msgid "Messages"
+msgstr "پیام‌ها"
+
+msgid "View"
+msgstr "مشاهده"
+
+msgid "Delete all conversations"
+msgstr "حذف همه گفتگوها"
+
+msgid "Content to learn"
+msgstr "محتوای قابل یادگیری"
+
+msgid "Category and brand descriptions"
+msgstr "توضیحات دسته‌ها و برندها"
+
+msgid "Privacy"
+msgstr "حریم خصوصی"
+
+msgid "Keep conversation messages for review"
+msgstr "پیام‌های گفتگو برای بازبینی نگه داشته شوند"
+
+msgid "Delete conversations after this many days"
+msgstr "حذف گفتگوها پس از این تعداد روز"
+
+msgid "Messages allowed per visitor per minute"
+msgstr "تعداد پیام مجاز هر بازدیدکننده در دقیقه"
+
+msgid "Your own self-hosted engine (optional)"
+msgstr "موتور اختصاصی خودتان (اختیاری)"
+
+msgid "Off by default. If you run the Self-Hosted edition on your own server, visitors' questions can be sent to it for generated answers. Questions then leave this WordPress host and go to the address below. If it does not respond, this site answers on its own."
+msgstr "به‌طور پیش‌فرض خاموش است. اگر نسخه Self-Hosted را روی سرور خودتان اجرا می‌کنید، پرسش بازدیدکنندگان می‌تواند برای تولید پاسخ به آن فرستاده شود. در این حالت پرسش‌ها از این هاست خارج و به آدرس زیر ارسال می‌شوند. اگر موتور پاسخ ندهد، همین سایت خودش پاسخ می‌دهد."
+
+msgid "Use my self-hosted engine"
+msgstr "استفاده از موتور اختصاصی من"
+
+msgid "Engine URL"
+msgstr "آدرس موتور"
+
+msgid "Site key"
+msgstr "کلید سایت"
+
+msgid "Uninstall"
+msgstr "حذف افزونه"
+
+msgid "When the plugin is deleted, also delete all its data (knowledge, questions and answers, conversations, settings)."
+msgstr "هنگام حذف افزونه، همه داده‌های آن هم پاک شود (دانش، پرسش و پاسخ‌ها، گفتگوها و تنظیمات)."
+
+msgid "You do not have permission to do this."
+msgstr "اجازه انجام این کار را ندارید."
+

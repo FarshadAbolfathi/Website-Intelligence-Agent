@@ -1,0 +1,246 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\nLanguage: ar\nPlural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5);\n"
+
+msgid "Site Assistant"
+msgstr "مساعد الموقع"
+
+msgid "Scan finished."
+msgstr "اكتمل فحص الموقع."
+
+msgid "The scan stopped because of a connection error. It will continue in the background."
+msgstr "توقف الفحص بسبب خطأ في الاتصال وسيستمر في الخلفية."
+
+msgid "Status"
+msgstr "الحالة"
+
+msgid "Knowledge"
+msgstr "المعرفة"
+
+msgid "Questions & answers"
+msgstr "الأسئلة والأجوبة"
+
+msgid "Chat widget"
+msgstr "أداة الدردشة"
+
+msgid "Conversations"
+msgstr "المحادثات"
+
+msgid "Advanced"
+msgstr "متقدم"
+
+msgid "Saved."
+msgstr "تم الحفظ."
+
+msgid "Lite edition: the assistant finds and quotes your site's own text and reads prices and stock live from WooCommerce. It does not run a language model and does not write new sentences. Nothing is sent to any outside service."
+msgstr "إصدار Lite: يعثر المساعد على نصوص موقعك ويقتبسها، ويقرأ الأسعار والمخزون مباشرة من ووكومرس. لا يشغل نموذجا لغويا ولا يكتب جملا جديدة. لا يتم إرسال أي شيء إلى خدمة خارجية."
+
+msgid "Documents learned"
+msgstr "المستندات المتعلمة"
+
+msgid "Text sections indexed"
+msgstr "الأقسام النصية المفهرسة"
+
+msgid "Duplicates ignored"
+msgstr "المكررات المتجاهلة"
+
+msgid "Removed"
+msgstr "محذوف"
+
+msgid "Learning"
+msgstr "التعلم"
+
+msgid "A scan is running…"
+msgstr "الفحص قيد التشغيل…"
+
+msgid "Last scan finished: %s"
+msgstr "انتهى آخر فحص: %s"
+
+msgid "No scan has run yet."
+msgstr "لم يتم إجراء أي فحص بعد."
+
+msgid "Scan the site now"
+msgstr "افحص الموقع الآن"
+
+msgid "What the assistant reads"
+msgstr "ما يقرأه المساعد"
+
+msgid "Content type"
+msgstr "نوع المحتوى"
+
+msgid "Published"
+msgstr "منشور"
+
+msgid "Learned"
+msgstr "تم تعلمه"
+
+msgid "Enabled"
+msgstr "مفعل"
+
+msgid "WooCommerce detected: prices and stock are read live."
+msgstr "تم اكتشاف ووكومرس: تتم قراءة الأسعار والمخزون مباشرة."
+
+msgid "WooCommerce is not active."
+msgstr "ووكومرس غير مفعل."
+
+msgid "Answers are produced on this server only."
+msgstr "يتم إنتاج الإجابات على هذا الخادم فقط."
+
+msgid "Questions are forwarded to your self-hosted engine."
+msgstr "تتم إحالة الأسئلة إلى محركك الخاص."
+
+msgid "New %1$d, updated %2$d, unchanged %3$d, removed %4$d, errors %5$d"
+msgstr "جديد %1$d، محدث %2$d، دون تغيير %3$d، محذوف %4$d، أخطاء %5$d"
+
+msgid "Test a question"
+msgstr "اختبر سؤالا"
+
+msgid "Ask"
+msgstr "اسأل"
+
+msgid "score"
+msgstr "النتيجة"
+
+msgid "coverage"
+msgstr "التغطية"
+
+msgid "Latest documents"
+msgstr "أحدث المستندات"
+
+msgid "Title"
+msgstr "العنوان"
+
+msgid "Type"
+msgstr "النوع"
+
+msgid "Language"
+msgstr "اللغة"
+
+msgid "Checked"
+msgstr "تاريخ الفحص"
+
+msgid "Add a question and answer"
+msgstr "أضف سؤالا وجوابا"
+
+msgid "Your own answers are used before anything else. Keywords are optional, comma separated."
+msgstr "تستخدم إجاباتك قبل أي شيء آخر. الكلمات المفتاحية اختيارية وتفصل بفواصل."
+
+msgid "Question"
+msgstr "السؤال"
+
+msgid "Answer"
+msgstr "الجواب"
+
+msgid "Keywords"
+msgstr "الكلمات المفتاحية"
+
+msgid "Any"
+msgstr "الكل"
+
+msgid "Add"
+msgstr "إضافة"
+
+msgid "Delete"
+msgstr "حذف"
+
+msgid "Show the chat widget on the site"
+msgstr "اعرض أداة الدردشة على الموقع"
+
+msgid "Color"
+msgstr "اللون"
+
+msgid "Position"
+msgstr "الموضع"
+
+msgid "Right"
+msgstr "يمين"
+
+msgid "Left"
+msgstr "يسار"
+
+msgid "Default language"
+msgstr "اللغة الافتراضية"
+
+msgid "Same as the site"
+msgstr "مثل الموقع"
+
+msgid "Logo or avatar URL (https)"
+msgstr "رابط الشعار أو الصورة (https)"
+
+msgid "Show answer sources"
+msgstr "اعرض مصادر الإجابة"
+
+msgid "Welcome message"
+msgstr "رسالة الترحيب"
+
+msgid "Message when no answer is found"
+msgstr "رسالة عدم العثور على إجابة"
+
+msgid "Save"
+msgstr "حفظ"
+
+msgid "← Back to list"
+msgstr "العودة إلى القائمة"
+
+msgid "Questions without an answer"
+msgstr "أسئلة بلا إجابة"
+
+msgid "Add content or a question and answer for these."
+msgstr "أضف محتوى أو سؤالا وجوابا لهذه الأسئلة."
+
+msgid "None yet."
+msgstr "لا يوجد بعد."
+
+msgid "Last activity"
+msgstr "آخر نشاط"
+
+msgid "Messages"
+msgstr "الرسائل"
+
+msgid "View"
+msgstr "عرض"
+
+msgid "Delete all conversations"
+msgstr "حذف كل المحادثات"
+
+msgid "Content to learn"
+msgstr "المحتوى المراد تعلمه"
+
+msgid "Category and brand descriptions"
+msgstr "أوصاف الفئات والعلامات"
+
+msgid "Privacy"
+msgstr "الخصوصية"
+
+msgid "Keep conversation messages for review"
+msgstr "احتفظ برسائل المحادثة للمراجعة"
+
+msgid "Delete conversations after this many days"
+msgstr "احذف المحادثات بعد هذا العدد من الأيام"
+
+msgid "Messages allowed per visitor per minute"
+msgstr "عدد الرسائل المسموح بها لكل زائر في الدقيقة"
+
+msgid "Your own self-hosted engine (optional)"
+msgstr "محركك الخاص (اختياري)"
+
+msgid "Off by default. If you run the Self-Hosted edition on your own server, visitors' questions can be sent to it for generated answers. Questions then leave this WordPress host and go to the address below. If it does not respond, this site answers on its own."
+msgstr "معطل افتراضيا. إذا كنت تشغل إصدار Self-Hosted على خادمك، يمكن إرسال أسئلة الزوار إليه لتوليد الإجابات. عندها تغادر الأسئلة هذا الخادم إلى العنوان أدناه. وإذا لم يستجب، يجيب هذا الموقع بنفسه."
+
+msgid "Use my self-hosted engine"
+msgstr "استخدم محركي الخاص"
+
+msgid "Engine URL"
+msgstr "رابط المحرك"
+
+msgid "Site key"
+msgstr "مفتاح الموقع"
+
+msgid "Uninstall"
+msgstr "إلغاء التثبيت"
+
+msgid "When the plugin is deleted, also delete all its data (knowledge, questions and answers, conversations, settings)."
+msgstr "عند حذف الإضافة، احذف أيضا كل بياناتها (المعرفة والأسئلة والأجوبة والمحادثات والإعدادات)."
+
+msgid "You do not have permission to do this."
+msgstr "ليس لديك إذن للقيام بهذا."
+
