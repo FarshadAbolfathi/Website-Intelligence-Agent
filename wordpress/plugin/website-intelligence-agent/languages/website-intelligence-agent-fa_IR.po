@@ -244,3 +244,246 @@ msgstr "هنگام حذف افزونه، همه داده‌های آن هم پا
 msgid "You do not have permission to do this."
 msgstr "اجازه انجام این کار را ندارید."
 
+
+msgid "%1$d sites, %2$d pages"
+msgstr "%1$d سایت، %2$d صفحه"
+
+msgid "A chart appears after two days of data."
+msgstr "نمودار پس از دو روز داده نمایش داده می‌شود."
+
+msgid "Activate learned phrases automatically after three votes"
+msgstr "عبارت‌های یادگرفته‌شده پس از سه رأی خودکار فعال شوند"
+
+msgid "Active"
+msgstr "فعال"
+
+msgid "Add an answer"
+msgstr "افزودن پاسخ"
+
+msgid "Answer from this page"
+msgstr "پاسخ از این صفحه"
+
+msgid "Answered, last 30 days"
+msgstr "پاسخ‌داده‌شده، ۳۰ روز اخیر"
+
+msgid "Approve"
+msgstr "تأیید"
+
+msgid "Ask the assistant"
+msgstr "پرسیدن از دستیار"
+
+msgid "Asked, not on the site"
+msgstr "پرسیده شده، در سایت نیست"
+
+msgid "Built %s"
+msgstr "ساخته‌شده در %s"
+
+msgid "Connections"
+msgstr "ارتباط‌ها"
+
+msgid "Contact and handoff"
+msgstr "تماس و ارجاع به پشتیبانی"
+
+msgid "Contact page URL"
+msgstr "نشانی صفحه تماس"
+
+msgid "Done"
+msgstr "انجام شد"
+
+msgid "Drag to move, scroll to zoom, click a circle for details."
+msgstr "برای جابه‌جایی بکشید، برای بزرگ‌نمایی اسکرول کنید و برای جزئیات روی هر دایره کلیک کنید."
+
+msgid "Email"
+msgstr "ایمیل"
+
+msgid "Failed"
+msgstr "ناموفق"
+
+msgid "Find a topic…"
+msgstr "جست‌وجوی موضوع…"
+
+msgid "For words your visitors use that your pages do not, such as a colloquial name for a product."
+msgstr "برای کلماتی که بازدیدکنندگان به کار می‌برند ولی در صفحات شما نیست، مثل نام محاوره‌ای یک محصول."
+
+msgid "Ideas for new content. The assistant never answers visitors from other sites."
+msgstr "ایده‌هایی برای محتوای جدید. دستیار هرگز از سایت‌های دیگر به بازدیدکننده پاسخ نمی‌دهد."
+
+msgid "Knowledge map"
+msgstr "نقشه دانش"
+
+msgid "Last asked"
+msgstr "آخرین پرسش"
+
+msgid "Learned from visitors"
+msgstr "یادگرفته از بازدیدکنندگان"
+
+msgid "Learned phrases"
+msgstr "عبارت‌های یادگرفته‌شده"
+
+msgid "Learning from conversations"
+msgstr "یادگیری از گفت‌وگوها"
+
+msgid "Not added:"
+msgstr "اضافه نشد:"
+
+msgid "Nothing learned yet. Run a scan from the Status tab."
+msgstr "هنوز چیزی یاد گرفته نشده. از زبانه وضعیت، سایت را بررسی کنید."
+
+msgid "Only on reference sites"
+msgstr "فقط در سایت‌های مرجع"
+
+msgid "Open page"
+msgstr "باز کردن صفحه"
+
+msgid "Page"
+msgstr "صفحه"
+
+msgid "Page or product"
+msgstr "صفحه یا محصول"
+
+msgid "Pages learned"
+msgstr "صفحات یادگرفته‌شده"
+
+msgid "Pages read"
+msgstr "صفحات خوانده‌شده"
+
+msgid "Phone"
+msgstr "تلفن"
+
+msgid "Phrases learned from visitors"
+msgstr "عبارت‌های یادگرفته از بازدیدکنندگان"
+
+msgid "Point to a page"
+msgstr "اتصال به یک صفحه"
+
+msgid "Publish content or add a question and answer for these words. A word leaves this list once your site contains it."
+msgstr "برای این کلمات محتوا منتشر کنید یا پرسش و پاسخ اضافه کنید. هر کلمه وقتی در سایت شما بیاید از این فهرست خارج می‌شود."
+
+msgid "Read again"
+msgstr "خواندن دوباره"
+
+msgid "Reading"
+msgstr "در حال خواندن"
+
+msgid "Reading finished. Reload the page to see the results."
+msgstr "خواندن تمام شد. برای دیدن نتیجه صفحه را تازه کنید."
+
+msgid "Reading reference sites…"
+msgstr "در حال خواندن سایت‌های مرجع…"
+
+msgid "Rebuild"
+msgstr "ساخت دوباره"
+
+msgid "Reference sites"
+msgstr "سایت‌های مرجع"
+
+msgid "Reference sites read"
+msgstr "سایت‌های مرجع خوانده‌شده"
+
+msgid "Reject"
+msgstr "رد"
+
+msgid "Rejected"
+msgstr "ردشده"
+
+msgid "Response hours"
+msgstr "زمان پاسخ‌گویی"
+
+msgid "Share of questions answered, by day"
+msgstr "سهم سؤال‌های پاسخ‌داده‌شده، روزانه"
+
+msgid "Shown as buttons under the welcome message, one per line. Leave empty to suggest your main categories."
+msgstr "به‌صورت دکمه زیر پیام خوش‌آمد نمایش داده می‌شوند، هر کدام در یک خط. اگر خالی بماند، دسته‌های اصلی سایت پیشنهاد می‌شوند."
+
+msgid "Site"
+msgstr "سایت"
+
+msgid "Skipped by robots.txt"
+msgstr "ردشده طبق robots.txt"
+
+msgid "Suggested questions"
+msgstr "سؤال‌های پیشنهادی"
+
+msgid "Teach"
+msgstr "یاد بده"
+
+msgid "Teach a phrase"
+msgstr "یاد دادن یک عبارت"
+
+msgid "Telegram username"
+msgstr "نام کاربری تلگرام"
+
+msgid "This map is drawn from what the assistant has really indexed. Green circles are your main topics, blue ones are pages, purple ones are phrases visitors taught it, red ones are words visitors asked about that your site lacks, and orange ones are topics your reference sites cover and you do not. Lines join topics that appear on the same pages."
+msgstr "این نقشه از چیزی ساخته می‌شود که دستیار واقعاً فهرست کرده است. دایره‌های سبز موضوع‌های اصلی شما، آبی‌ها صفحات، بنفش‌ها عبارت‌هایی که بازدیدکنندگان یادش داده‌اند، قرمزها کلماتی که پرسیده شده ولی در سایت نیست و نارنجی‌ها موضوع‌هایی هستند که سایت‌های مرجع دارند و شما ندارید. خط‌ها موضوع‌هایی را که در صفحات مشترک آمده‌اند به هم وصل می‌کنند."
+
+msgid "Times asked"
+msgstr "دفعات پرسش"
+
+msgid "Topic"
+msgstr "موضوع"
+
+msgid "Topics your reference sites cover and you do not"
+msgstr "موضوع‌هایی که سایت‌های مرجع دارند و شما ندارید"
+
+msgid "Unanswered words"
+msgstr "کلمات بی‌پاسخ"
+
+msgid "Up to five other websites, one address per line, for example competitors or suppliers. Their public pages are read in the background, honouring robots.txt, at most 30 pages each. Only the words they use are kept, not their text, and they are used only for the knowledge map. They are never used to answer visitors."
+msgstr "حداکثر پنج سایت دیگر، هر نشانی در یک خط، مثلاً رقبا یا تأمین‌کنندگان. صفحات عمومی آن‌ها با رعایت robots.txt و حداکثر ۳۰ صفحه از هر سایت، در پس‌زمینه خوانده می‌شود. فقط کلمات به کار رفته نگه داشته می‌شود، نه متن آن‌ها، و فقط برای نقشه دانش استفاده می‌شود. هرگز برای پاسخ به بازدیدکنندگان به کار نمی‌رود."
+
+msgid "Visitors' words"
+msgstr "کلمات بازدیدکنندگان"
+
+msgid "Votes"
+msgstr "رأی‌ها"
+
+msgid "Waiting"
+msgstr "در انتظار"
+
+msgid "Waiting for votes"
+msgstr "در انتظار رأی"
+
+msgid "What visitors ask that your site does not cover"
+msgstr "چیزهایی که بازدیدکنندگان می‌پرسند و در سایت شما نیست"
+
+msgid "WhatsApp number, with country code"
+msgstr "شماره واتساپ، با کد کشور"
+
+msgid "When a visitor asks how to reach you, or the assistant misses twice in a row, it offers these. Leave all empty to link your contact page, if the site has one."
+msgstr "وقتی بازدیدکننده راه ارتباط بخواهد یا دستیار دو بار پشت سر هم پاسخ پیدا نکند، این‌ها را پیشنهاد می‌دهد. اگر همه خالی باشد، صفحه تماس سایت (اگر وجود داشته باشد) معرفی می‌شود."
+
+msgid "When your site does not contain a visitor's word, the assistant offers what it has. If the visitor then settles on a page, that counts as one vote for that word and page. Three votes from different conversations make the phrase active, and later visitors get that page directly. Answers still come only from your own pages."
+msgstr "وقتی کلمه بازدیدکننده در سایت شما نیست، دستیار موارد موجود را پیشنهاد می‌دهد. اگر بازدیدکننده در نهایت به یک صفحه برسد، یک رأی برای آن کلمه و صفحه ثبت می‌شود. با سه رأی از گفت‌وگوهای مختلف، عبارت فعال می‌شود و بازدیدکنندگان بعدی مستقیم به همان صفحه می‌رسند. پاسخ‌ها همچنان فقط از صفحات خود شماست."
+
+msgid "Word"
+msgstr "کلمه"
+
+msgid "Words"
+msgstr "کلمات"
+
+msgid "Words known"
+msgstr "کلمات شناخته‌شده"
+
+msgid "Words known over time"
+msgstr "رشد کلمات شناخته‌شده"
+
+msgid "more than five sites"
+msgstr "بیش از پنج سایت"
+
+msgid "not a public address"
+msgstr "نشانی عمومی نیست"
+
+msgid "not a web address"
+msgstr "نشانی وب نیست"
+
+msgid "this is your own site"
+msgstr "این سایت خودتان است"
+
+msgid "of %s questions"
+msgstr "از %s سؤال"
+
+msgid "%s more waiting for votes"
+msgstr "%s مورد دیگر در انتظار رأی"
+
+msgid "%s pages"
+msgstr "%s صفحه"

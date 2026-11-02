@@ -37,10 +37,12 @@ check() { # name, haystack, needle
   if printf '%s' "$2" | grep -q "$3"; then echo "ok   $1"; else echo "FAIL $1: $2" | cut -c1-400; FAILED=1; fi
 }
 check "widget config is public" "$(curl -s -m 20 "$BASE/widget")" '"position":"right"'
+check "widget config has starter suggestions" "$(curl -s -m 20 "$BASE/widget")" '"starters":\['
 ANSWER=$(post '{"message":"how do I reset the widget gearbox"}')
 check "real answer over HTTP" "$ANSWER" 'conversation_id'
 check "answer comes from content" "$ANSWER" 'small red button'
 check "source link is returned" "$ANSWER" 'gearbox-guide'
+check "answer carries suggestions and actions" "$ANSWER" '"suggestions":.*"actions":'
 CODE=$(curl -s -m 20 -o /dev/null -w '%{http_code}' -X POST "$BASE/chat" -H 'Content-Type: application/json' -d '{}')
 check "missing message rejected" "$CODE" '400'
 HOME_HTML=$(curl -s -m 20 http://localhost:8090/)
@@ -56,8 +58,13 @@ echo "=== admin screens render for a logged-in admin"
 wp eval-file /tests/admin-pages.php || FAILED=1
 
 echo "=== with WooCommerce"
-wp plugin install woocommerce --activate >/dev/null 2>&1 || { echo "FAIL could not install WooCommerce"; FAILED=1; }
+# A local copy in dist/cache (not committed) avoids depending on a slow connection to wordpress.org.
+WOO=woocommerce
+[ -f "$ROOT/dist/cache/woocommerce.zip" ] && WOO=/plugin/cache/woocommerce.zip
+wp plugin install "$WOO" --activate >/dev/null 2>&1 || { echo "FAIL could not install WooCommerce"; FAILED=1; }
 run_suite "WooCommerce suite" suite-woo.php
+
+run_suite "dialogue, learning, knowledge map and reference sites" suite-dialog.php
 
 echo "=== large site: batched scan under a low memory limit"
 run_suite "scale suite" suite-scale.php
@@ -72,7 +79,7 @@ wp plugin uninstall website-intelligence-agent >/dev/null
 count_tables() { wp eval 'global $wpdb; echo count($wpdb->get_col("SHOW TABLES LIKE \"{$wpdb->prefix}wia\\_%\""));' | tr -d ' \n'; }
 count_options() { wp eval 'global $wpdb; echo (int) $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->options} WHERE option_name LIKE \"wia\\_%\"");' | tr -d ' \n'; }
 KEPT=$(count_tables)
-[ "$KEPT" = "6" ] && echo "ok   default uninstall kept the 6 tables" || { echo "FAIL expected 6 tables, found $KEPT"; FAILED=1; }
+[ "$KEPT" = "9" ] && echo "ok   default uninstall kept the 9 tables" || { echo "FAIL expected 9 tables, found $KEPT"; FAILED=1; }
 wp plugin install /plugin/website-intelligence-agent-lite.zip --activate >/dev/null
 wp option update wia_delete_on_uninstall 1 >/dev/null
 wp plugin deactivate website-intelligence-agent >/dev/null

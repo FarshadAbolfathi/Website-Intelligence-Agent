@@ -33,6 +33,13 @@ services:
     volumes:
       - wp_files:/var/www/html
 
+  # A tiny static site standing in for a reference website, so reading other sites is tested over real HTTP.
+  ref:
+    image: php:8.2-cli
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/fixtures"]
+    volumes:
+      - ../../../tests/wordpress/fixtures/ref:/fixtures:ro
+
   cli:
     image: wordpress:cli
     user: "33:33"

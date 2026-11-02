@@ -35,6 +35,7 @@ DEFAULT_WIDGET = {
     "avatar_url": "",
     "show_sources": True,
     "enabled": True,
+    "starters": [],
 }
 
 
@@ -563,7 +564,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 {"conversation_id": conv_id, "role": "assistant", "text": answer.text, "meta": {"mode": answer.mode, "latency_ms": answer.latency_ms}, "created_at": now},
             ])
         sources = [{"url": s.url, "title": s.title, "checked_at": s.crawled_at} for s in answer.sources] if widget.get("show_sources", True) else []
-        return {"conversation_id": conv_id, "answer": answer.text, "language": answer.language, "mode": answer.mode, "sources": sources, "stale": answer.stale}
+        return {"conversation_id": conv_id, "answer": answer.text, "language": answer.language, "mode": answer.mode, "sources": sources, "stale": answer.stale,
+                # Same shape as the WordPress edition. Clarifying suggestions and contact buttons exist only in Lite so far.
+                "suggestions": [], "actions": []}
 
     # ---- static files --------------------------------------------------------------------
     widget_file = Path(settings.widget_path)

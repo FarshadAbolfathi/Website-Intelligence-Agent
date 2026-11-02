@@ -1,6 +1,6 @@
 import pytest
 
-from core.text.normalize import detect_language, normalize, numbers_in, tokenize
+from core.text.normalize import detect_language, normalize, numbers_in, subject_tokens, tokenize
 
 
 def test_normalize_vectors(vectors):
@@ -16,6 +16,11 @@ def test_language_vectors(vectors):
 def test_token_equivalence_vectors(vectors):
     for case in vectors["tokens_equal"]:
         assert tokenize(case["a"]) == tokenize(case["b"]), case["why"]
+
+
+def test_subject_token_vectors(vectors):
+    for case in vectors["subject_tokens"]:
+        assert subject_tokens(case["in"]) == case["out"], case["why"]
 
 
 @pytest.mark.parametrize("a,b", [("۲٬۵۰۰٬۰۰۰ تومان", "2500000"), ("٢٥٠٠", "2500"), ("1,250.50", "1250.5"), ("999.00", "999")])

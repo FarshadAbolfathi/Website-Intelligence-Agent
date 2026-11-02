@@ -125,6 +125,7 @@ def test_full_flow_crawl_chat_and_multi_turn(admin, sites):
     assert first.status_code == 200, first.text
     body = first.json()
     assert "۲۵٬۰۰۰٬۰۰۰" in body["answer"] and body["mode"] == "structured" and body["sources"][0]["url"].endswith("/products/phone-x")
+    assert body["suggestions"] == [] and body["actions"] == []  # same response shape as the WordPress edition
     second = public.post("/public/v1/chat", json={"site_key": site["public_key"], "message": "موجوده؟", "conversation_id": body["conversation_id"]}).json()
     assert "گوشی ایکس" in second["answer"] and "موجود است" in second["answer"] and second["conversation_id"] == body["conversation_id"]
     assert len(admin.get(f"/api/sites/{site['id']}/conversations/{body['conversation_id']}").json()) == 4
@@ -148,7 +149,7 @@ def test_public_api_is_narrow_and_tenant_isolated(admin, sites):
 def test_public_widget_config_exposes_only_widget_fields(admin, sites):
     site = make_site(admin, sites["en"].url)
     config = TestClient(admin.app).get("/public/v1/widget", params={"site_key": site["public_key"]}).json()
-    assert set(config) == {"title", "welcome", "not_found", "color", "position", "language", "avatar_url", "show_sources", "enabled"}
+    assert set(config) == {"title", "welcome", "not_found", "color", "position", "language", "avatar_url", "show_sources", "enabled", "starters"}
 
 
 def test_cors_only_for_the_sites_own_origin(admin, sites):

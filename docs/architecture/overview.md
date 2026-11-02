@@ -76,6 +76,24 @@ question
        failed                       -> quote the site's text instead
 ```
 
+### Dialogue in the Lite edition
+
+`WIA_Chat::answer()` handles one question as above, without a model. `WIA_Chat::converse()` wraps it with the conversation state:
+
+```text
+«نه، این نبود»                     -> the previous answer's alternatives
+«بله» after a single offer         -> answer that offer
+contact question                   -> owner's contact details, or the contact page
+several products, none fully named -> list with live prices, offered as buttons ("clarify")
+gate fails                         -> learned phrase for the unknown words, if active
+                                   -> otherwise name the unknown words and offer what exists
+second miss in a row               -> append the contact details ("handoff")
+```
+
+`WIA_Learn` turns a miss followed by a confident answer into a vote for (unknown words -> that page). A phrase becomes active after three votes from different conversations and must match the unknown words exactly. It only changes which of the site's own pages is quoted.
+
+`WIA_Graph` builds the knowledge map from the postings table: topics are words found on several pages, links are shared pages. `WIA_Reference` reads up to five owner-chosen sites through `wp_safe_remote_get`, honouring robots.txt, and stores only per-site word counts in `wia_ref_terms`. Nothing in the chat path reads those tables.
+
 ## Prompt injection
 
 Crawled text is treated as data, in three independent layers:

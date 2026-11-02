@@ -13,6 +13,10 @@ foreach ( $vectors['tokens_equal'] as $c ) {
 	ok( WIA_Text::tokenize( $c['a'] ) === WIA_Text::tokenize( $c['b'] ), 'tokens: ' . $c['why'], array( WIA_Text::tokenize( $c['a'] ), WIA_Text::tokenize( $c['b'] ) ) );
 }
 
+foreach ( $vectors['subject_tokens'] as $c ) {
+	ok( WIA_Text::subject_tokens( $c['in'] ) === $c['out'], 'subject: ' . $c['why'], WIA_Text::subject_tokens( $c['in'] ) );
+}
+
 // ---- activation did no synchronous work ------------------------------------------------------------
 ok( 'running' === WIA_Ingest::scan_state()['state'], 'activation only schedules the first scan' );
 ok( wp_next_scheduled( 'wia_daily' ) > 0, 'daily maintenance is scheduled' );
@@ -105,7 +109,7 @@ ok( 'faq' === $a['mode'] && false !== strpos( $a['text'], '۹ تا ۱۷' ), 'own
 $s = WIA_DB::settings();
 $s['not_found'] = array( 'en' => 'Please ask our team.' );
 update_option( 'wia_settings', $s, false );
-ok( 'Please ask our team.' === WIA_Chat::answer( 'Do you sell nuclear submarines?' )['text'], 'custom no-answer message' );
+ok( 0 === strpos( WIA_Chat::answer( 'Do you sell nuclear submarines?' )['text'], 'Please ask our team.' ), 'custom no-answer message' );
 
 $s['types'] = array( 'page' );
 update_option( 'wia_settings', $s, false );

@@ -168,6 +168,22 @@ def test_new_question_with_its_own_subject_does_not_inherit_the_previous_one(wor
     assert "30 days" in answer.text
 
 
+def test_unknown_word_after_a_product_is_not_answered_with_that_product(world):
+    # Found by the WordPress dialogue suite: «زیردریایی» plus the previous subject passed the gate.
+    engine = bot(world)
+    first = engine.answer(world["ids"]["fa"], "قیمت گوشی ایکس چقدر است؟")
+    history = [ChatTurn("user", "قیمت گوشی ایکس چقدر است؟"), ChatTurn("assistant", first.text)]
+    answer = engine.answer(world["ids"]["fa"], "زیردریایی", history=history, context_doc_id=first.context_doc_id)
+    assert answer.mode == "not_found", answer.text
+
+
+def test_persian_word_for_bag_is_a_subject_not_the_arabic_how(world):
+    # «کیف» used to be dropped as a stopword, so a question about bags had no subject at all.
+    scope = Scope(world["ids"]["fa"])
+    assert world["store"].unknown_terms(scope, "کیف") == ["کیف"]
+    assert world["store"].unknown_terms(scope, "كيف حالك") == ["حالک"]
+
+
 def test_english_followup(world):
     engine = bot(world)
     first = engine.answer(world["ids"]["en"], "How much is Headphones B?")

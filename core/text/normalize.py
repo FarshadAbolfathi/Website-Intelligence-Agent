@@ -135,6 +135,21 @@ def detect_language(text: str, default: str = "en") -> str:
     return "fa" if fa > ar else "ar"
 
 
+# «كيف» (Arabic "how") and «کیف» (Persian "bag") are the same string after normalisation, so these words cannot be
+# stopwords. They stay searchable and are treated as question words only when the question itself is Arabic.
+AR_FUNCTION_STEMS = frozenset(stem(w) for w in LANGUAGE["arabic_function_words"]["words"])
+
+
+def soft_stems_for(text: str) -> frozenset[str]:
+    return SOFT_STEMS | AR_FUNCTION_STEMS if detect_language(text, "fa") == "ar" else SOFT_STEMS
+
+
+def subject_tokens(text: str) -> list[str]:
+    """The words of a question that name its subject."""
+    soft = soft_stems_for(text)
+    return [w for w in tokenize(text) if w not in soft]
+
+
 _SENTENCE = re.compile(r"(?<=[.!?؟…。])\s+|\n+")
 
 

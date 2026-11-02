@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.0 (unreleased)
+
+### Fixed
+
+- «کیف» (bag), «قد» (height) and «هل» (cardamom) were dropped as stopwords, because after normalisation they are the same strings as Arabic question words. A question such as «کیف» had no subject at all. They are now ordinary words, and count as question words only in Arabic questions. Both editions.
+- A question with a word the site does not know could borrow the previous message's subject and get that subject's answer. Both editions.
+
+### Lite edition (WordPress)
+
+- Clarifying questions: several matching products are listed with live prices and offered as buttons
+- A miss says which word is not on the site and offers what is, or the site's main categories
+- «نه، این نبود» brings back the alternatives; «بله» accepts a single offer
+- Contact details and handoff after two misses in a row, with call, mail, WhatsApp and Telegram buttons
+- Farewell, "who are you" and "how are you" replies; starter questions under the welcome message
+- Learning from conversations: phrases become active after three votes from different conversations, with owner review
+- Knowledge map: an interactive graph of topics, pages, learned phrases, gaps and reference-only topics, with growth charts
+- Reference sites: up to five other sites read for vocabulary only, honouring robots.txt; never used in answers
+- Live price added to quoted product answers
+
+### Shared
+
+- The public chat response gains `suggestions` and `actions`, and the widget configuration gains `starters`. The Self-Hosted edition returns them empty for now.
+
 ## 0.1.0 (unreleased)
 
 First pre-release.

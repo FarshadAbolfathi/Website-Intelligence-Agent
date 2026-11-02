@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://ref:8080/bags/ergonomic.html</loc></url>
+  <url><loc>http://ref:8080/bags/waterproof.html</loc></url>
+  <url><loc>http://ref:8080/private/secret.html</loc></url>
+  <url><loc>http://ref:8080/logo.png</loc></url>
+  <url><loc>http://elsewhere.example/page.html</loc></url>
+</urlset>

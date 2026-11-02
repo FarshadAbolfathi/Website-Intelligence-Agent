@@ -73,6 +73,8 @@ class WIA_REST {
 		if ( $remote ) {
 			$state['engine_conversation'] = isset( $remote['conversation_id'] ) ? (string) $remote['conversation_id'] : '';
 			$answer = array(
+				'suggestions' => isset( $remote['suggestions'] ) && is_array( $remote['suggestions'] ) ? $remote['suggestions'] : array(),
+				'actions'     => array(),
 				'text'     => (string) $remote['answer'],
 				'language' => isset( $remote['language'] ) ? (string) $remote['language'] : 'en',
 				'mode'     => isset( $remote['mode'] ) ? 'engine_' . sanitize_key( $remote['mode'] ) : 'engine',
@@ -80,11 +82,7 @@ class WIA_REST {
 				'stale'    => ! empty( $remote['stale'] ),
 			);
 		} else {
-			$answer = WIA_Chat::answer( $question, isset( $state['doc'] ) ? (int) $state['doc'] : 0, isset( $state['q'] ) ? (string) $state['q'] : '' );
-			$state['doc'] = (int) $answer['context_doc'];
-			if ( ! in_array( $answer['mode'], array( 'smalltalk', 'guard' ), true ) ) {
-				$state['q'] = mb_substr( $question, 0, 200 );
-			}
+			$answer = WIA_Chat::converse( $question, $state );
 		}
 		$id = WIA_Chat::save_turn( $id, $state, $question, $answer );
 		$response = new WP_REST_Response(
@@ -95,10 +93,17 @@ class WIA_REST {
 				'mode'            => $answer['mode'],
 				'sources'         => empty( $settings['show_sources'] ) ? array() : $answer['sources'],
 				'stale'           => (bool) $answer['stale'],
+				'suggestions'     => array_values( array_slice( array_map( 'strval', (array) $answer['suggestions'] ), 0, 4 ) ),
+				'actions'         => array_values( array_filter( (array) $answer['actions'], array( __CLASS__, 'safe_action' ) ) ),
 			)
 		);
 		$response->header( 'Cache-Control', 'no-store' );
 		return $response;
+	}
+
+	/** Contact buttons may only be web, phone or mail links. */
+	public static function safe_action( $action ) {
+		return is_array( $action ) && isset( $action['url'], $action['label'] ) && preg_match( '#^(?:https?://|tel:\+?[0-9]+$|mailto:[^\s<>"]+$)#i', (string) $action['url'] );
 	}
 
 	public static function widget() {
@@ -113,6 +118,7 @@ class WIA_REST {
 			'language'     => WIA_DB::default_language(),
 			'avatar_url'   => (string) $s['avatar_url'],
 			'show_sources' => (bool) $s['show_sources'],
+			'starters'     => WIA_Chat::starters( WIA_DB::default_language() ),
 		);
 	}
 }

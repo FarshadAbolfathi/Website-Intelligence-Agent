@@ -244,3 +244,246 @@ msgstr "عند حذف الإضافة، احذف أيضا كل بياناتها (
 msgid "You do not have permission to do this."
 msgstr "ليس لديك إذن للقيام بهذا."
 
+
+msgid "%1$d sites, %2$d pages"
+msgstr "%1$d مواقع، %2$d صفحات"
+
+msgid "A chart appears after two days of data."
+msgstr "يظهر الرسم البياني بعد يومين من البيانات."
+
+msgid "Activate learned phrases automatically after three votes"
+msgstr "تفعيل العبارات المتعلمة تلقائيا بعد ثلاثة أصوات"
+
+msgid "Active"
+msgstr "نشطة"
+
+msgid "Add an answer"
+msgstr "إضافة إجابة"
+
+msgid "Answer from this page"
+msgstr "الإجابة من هذه الصفحة"
+
+msgid "Answered, last 30 days"
+msgstr "تمت الإجابة، آخر 30 يوما"
+
+msgid "Approve"
+msgstr "موافقة"
+
+msgid "Ask the assistant"
+msgstr "اسأل المساعد"
+
+msgid "Asked, not on the site"
+msgstr "سُئل عنه وليس في الموقع"
+
+msgid "Built %s"
+msgstr "أُنشئت في %s"
+
+msgid "Connections"
+msgstr "الروابط"
+
+msgid "Contact and handoff"
+msgstr "التواصل والإحالة إلى الدعم"
+
+msgid "Contact page URL"
+msgstr "رابط صفحة التواصل"
+
+msgid "Done"
+msgstr "تم"
+
+msgid "Drag to move, scroll to zoom, click a circle for details."
+msgstr "اسحب للتحريك، ومرّر للتكبير، وانقر على دائرة لعرض التفاصيل."
+
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+msgid "Failed"
+msgstr "فشل"
+
+msgid "Find a topic…"
+msgstr "ابحث عن موضوع…"
+
+msgid "For words your visitors use that your pages do not, such as a colloquial name for a product."
+msgstr "للكلمات التي يستخدمها زوارك ولا توجد في صفحاتك، مثل الاسم الدارج لمنتج."
+
+msgid "Ideas for new content. The assistant never answers visitors from other sites."
+msgstr "أفكار لمحتوى جديد. لا يجيب المساعد الزوار أبدا من مواقع أخرى."
+
+msgid "Knowledge map"
+msgstr "خريطة المعرفة"
+
+msgid "Last asked"
+msgstr "آخر سؤال"
+
+msgid "Learned from visitors"
+msgstr "متعلم من الزوار"
+
+msgid "Learned phrases"
+msgstr "العبارات المتعلمة"
+
+msgid "Learning from conversations"
+msgstr "التعلم من المحادثات"
+
+msgid "Not added:"
+msgstr "لم تتم الإضافة:"
+
+msgid "Nothing learned yet. Run a scan from the Status tab."
+msgstr "لم يتم تعلم شيء بعد. شغّل الفحص من تبويب الحالة."
+
+msgid "Only on reference sites"
+msgstr "فقط في المواقع المرجعية"
+
+msgid "Open page"
+msgstr "فتح الصفحة"
+
+msgid "Page"
+msgstr "الصفحة"
+
+msgid "Page or product"
+msgstr "صفحة أو منتج"
+
+msgid "Pages learned"
+msgstr "الصفحات المتعلمة"
+
+msgid "Pages read"
+msgstr "الصفحات المقروءة"
+
+msgid "Phone"
+msgstr "الهاتف"
+
+msgid "Phrases learned from visitors"
+msgstr "عبارات متعلمة من الزوار"
+
+msgid "Point to a page"
+msgstr "ربط بصفحة"
+
+msgid "Publish content or add a question and answer for these words. A word leaves this list once your site contains it."
+msgstr "انشر محتوى أو أضف سؤالا وإجابة لهذه الكلمات. تخرج الكلمة من القائمة عندما يحتويها موقعك."
+
+msgid "Read again"
+msgstr "إعادة القراءة"
+
+msgid "Reading"
+msgstr "جارٍ القراءة"
+
+msgid "Reading finished. Reload the page to see the results."
+msgstr "انتهت القراءة. أعد تحميل الصفحة لرؤية النتائج."
+
+msgid "Reading reference sites…"
+msgstr "جارٍ قراءة المواقع المرجعية…"
+
+msgid "Rebuild"
+msgstr "إعادة البناء"
+
+msgid "Reference sites"
+msgstr "المواقع المرجعية"
+
+msgid "Reference sites read"
+msgstr "المواقع المرجعية المقروءة"
+
+msgid "Reject"
+msgstr "رفض"
+
+msgid "Rejected"
+msgstr "مرفوضة"
+
+msgid "Response hours"
+msgstr "أوقات الرد"
+
+msgid "Share of questions answered, by day"
+msgstr "نسبة الأسئلة المجاب عنها يوميا"
+
+msgid "Shown as buttons under the welcome message, one per line. Leave empty to suggest your main categories."
+msgstr "تظهر كأزرار تحت رسالة الترحيب، كل واحد في سطر. اتركها فارغة لاقتراح فئاتك الرئيسية."
+
+msgid "Site"
+msgstr "الموقع"
+
+msgid "Skipped by robots.txt"
+msgstr "تم تخطيها بسبب robots.txt"
+
+msgid "Suggested questions"
+msgstr "الأسئلة المقترحة"
+
+msgid "Teach"
+msgstr "علّم"
+
+msgid "Teach a phrase"
+msgstr "تعليم عبارة"
+
+msgid "Telegram username"
+msgstr "اسم المستخدم في تيليجرام"
+
+msgid "This map is drawn from what the assistant has really indexed. Green circles are your main topics, blue ones are pages, purple ones are phrases visitors taught it, red ones are words visitors asked about that your site lacks, and orange ones are topics your reference sites cover and you do not. Lines join topics that appear on the same pages."
+msgstr "تُرسم هذه الخريطة مما فهرسه المساعد فعلا. الدوائر الخضراء مواضيعك الرئيسية، والزرقاء صفحات، والبنفسجية عبارات علّمها الزوار للمساعد، والحمراء كلمات سأل عنها الزوار ولا يحتويها موقعك، والبرتقالية مواضيع تغطيها المواقع المرجعية ولا تغطيها أنت. تربط الخطوط المواضيع التي تظهر في الصفحات نفسها."
+
+msgid "Times asked"
+msgstr "مرات السؤال"
+
+msgid "Topic"
+msgstr "موضوع"
+
+msgid "Topics your reference sites cover and you do not"
+msgstr "مواضيع تغطيها المواقع المرجعية ولا تغطيها أنت"
+
+msgid "Unanswered words"
+msgstr "كلمات بلا إجابة"
+
+msgid "Up to five other websites, one address per line, for example competitors or suppliers. Their public pages are read in the background, honouring robots.txt, at most 30 pages each. Only the words they use are kept, not their text, and they are used only for the knowledge map. They are never used to answer visitors."
+msgstr "حتى خمسة مواقع أخرى، عنوان في كل سطر، مثل المنافسين أو الموردين. تُقرأ صفحاتها العامة في الخلفية مع احترام robots.txt، بحد أقصى 30 صفحة لكل موقع. تُحفظ الكلمات المستخدمة فقط، لا نصوصها، وتُستخدم لخريطة المعرفة فقط. لا تُستخدم أبدا للإجابة عن الزوار."
+
+msgid "Visitors' words"
+msgstr "كلمات الزوار"
+
+msgid "Votes"
+msgstr "الأصوات"
+
+msgid "Waiting"
+msgstr "في الانتظار"
+
+msgid "Waiting for votes"
+msgstr "بانتظار الأصوات"
+
+msgid "What visitors ask that your site does not cover"
+msgstr "ما يسأل عنه الزوار ولا يغطيه موقعك"
+
+msgid "WhatsApp number, with country code"
+msgstr "رقم واتساب مع رمز الدولة"
+
+msgid "When a visitor asks how to reach you, or the assistant misses twice in a row, it offers these. Leave all empty to link your contact page, if the site has one."
+msgstr "عندما يسأل الزائر عن طريقة التواصل، أو لا يجد المساعد إجابة مرتين متتاليتين، يعرض هذه البيانات. اتركها فارغة لربط صفحة التواصل إن وجدت."
+
+msgid "When your site does not contain a visitor's word, the assistant offers what it has. If the visitor then settles on a page, that counts as one vote for that word and page. Three votes from different conversations make the phrase active, and later visitors get that page directly. Answers still come only from your own pages."
+msgstr "عندما لا يحتوي موقعك على كلمة الزائر، يعرض المساعد ما لديه. إذا استقر الزائر على صفحة، يُحتسب ذلك صوتا لتلك الكلمة والصفحة. ثلاثة أصوات من محادثات مختلفة تجعل العبارة نشطة، فيصل الزوار التالون إلى تلك الصفحة مباشرة. تبقى الإجابات من صفحاتك فقط."
+
+msgid "Word"
+msgstr "الكلمة"
+
+msgid "Words"
+msgstr "الكلمات"
+
+msgid "Words known"
+msgstr "الكلمات المعروفة"
+
+msgid "Words known over time"
+msgstr "الكلمات المعروفة مع الوقت"
+
+msgid "more than five sites"
+msgstr "أكثر من خمسة مواقع"
+
+msgid "not a public address"
+msgstr "ليس عنوانا عاما"
+
+msgid "not a web address"
+msgstr "ليس عنوان ويب"
+
+msgid "this is your own site"
+msgstr "هذا موقعك نفسه"
+
+msgid "of %s questions"
+msgstr "من %s سؤالا"
+
+msgid "%s more waiting for votes"
+msgstr "%s أخرى بانتظار الأصوات"
+
+msgid "%s pages"
+msgstr "%s صفحات"

@@ -304,6 +304,8 @@ class WIA_Ingest {
 				$scan['state']    = 'done';
 				$scan['finished'] = current_time( 'mysql', true );
 				update_option( 'wia_last_sweep', (string) $scan['started'], false );
+				WIA_Graph::forget();
+				WIA_Learn::snapshot();
 			}
 		}
 		update_option( 'wia_scan', $scan, false );
@@ -320,6 +322,8 @@ class WIA_Ingest {
 			self::start_scan( false );
 		}
 		WIA_Chat::purge_old();
+		WIA_Learn::snapshot();
+		WIA_Reference::daily();
 	}
 
 	/** Public content the settings leave unread, shown in the admin so nothing is silently skipped. */

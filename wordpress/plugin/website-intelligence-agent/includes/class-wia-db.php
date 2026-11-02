@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WIA_DB {
-	const VERSION = '1';
+	const VERSION = '2';
 
 	public static function t( $name ) {
 		global $wpdb;
@@ -26,6 +26,7 @@ class WIA_DB {
 	public static function deactivate() {
 		wp_clear_scheduled_hook( 'wia_scan_batch' );
 		wp_clear_scheduled_hook( 'wia_daily' );
+		wp_clear_scheduled_hook( 'wia_ref_batch' );
 	}
 
 	public static function maybe_upgrade() {
@@ -44,6 +45,9 @@ class WIA_DB {
 		$faqs      = self::t( 'faqs' );
 		$conv      = self::t( 'conversations' );
 		$messages  = self::t( 'messages' );
+		$aliases   = self::t( 'aliases' );
+		$ref_src   = self::t( 'ref_sources' );
+		$ref_terms = self::t( 'ref_terms' );
 
 		dbDelta(
 			"CREATE TABLE {$documents} (
@@ -125,6 +129,45 @@ class WIA_DB {
 			KEY created_at (created_at)
 		) $c;"
 		);
+		// Phrases visitors taught the assistant, see WIA_Learn. The phrase is stored as normalised, sorted stems.
+		dbDelta(
+			"CREATE TABLE {$aliases} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			phrase varchar(191) NOT NULL,
+			doc_id bigint(20) unsigned NOT NULL,
+			votes int(11) NOT NULL DEFAULT 0,
+			status varchar(12) NOT NULL DEFAULT 'candidate',
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY phrase_doc (phrase,doc_id),
+			KEY status (status)
+		) $c;"
+		);
+		// Other websites the owner chose to learn from. Only word counts are kept, never their text, and they
+		// are never used to answer visitors. See WIA_Reference.
+		dbDelta(
+			"CREATE TABLE {$ref_src} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			url varchar(500) NOT NULL,
+			status varchar(12) NOT NULL DEFAULT 'queued',
+			queue mediumtext NULL,
+			pages int(11) NOT NULL DEFAULT 0,
+			skipped int(11) NOT NULL DEFAULT 0,
+			last_error varchar(255) NOT NULL DEFAULT '',
+			fetched_at datetime NULL,
+			PRIMARY KEY  (id)
+		) $c;"
+		);
+		dbDelta(
+			"CREATE TABLE {$ref_terms} (
+			source_id bigint(20) unsigned NOT NULL,
+			term varchar(80) COLLATE utf8mb4_bin NOT NULL,
+			df int(11) NOT NULL DEFAULT 1,
+			PRIMARY KEY  (source_id,term),
+			KEY term (term)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
+		);
 		update_option( 'wia_db_version', self::VERSION, false );
 	}
 
@@ -147,9 +190,15 @@ class WIA_DB {
 			'engine_enabled'   => 0,
 			'engine_url'       => '',
 			'engine_key'       => '',
+			'starters'         => array(),
+			'contact'          => array(),
+			'auto_learn'       => 1,
 		);
-		$saved = get_option( 'wia_settings', array() );
-		return wp_parse_args( is_array( $saved ) ? $saved : array(), $defaults );
+		$saved   = get_option( 'wia_settings', array() );
+		$out     = wp_parse_args( is_array( $saved ) ? $saved : array(), $defaults );
+		$contact = array( 'phone' => '', 'email' => '', 'whatsapp' => '', 'telegram' => '', 'page' => '', 'hours' => '' );
+		$out['contact'] = array_merge( $contact, array_intersect_key( is_array( $out['contact'] ) ? $out['contact'] : array(), $contact ) );
+		return $out;
 	}
 
 	public static function default_language() {

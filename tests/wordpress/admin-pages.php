@@ -14,7 +14,7 @@ $wpdb->query( 'UPDATE ' . WIA_DB::t( 'documents' ) . ' SET title = ' . $wpdb->pr
 
 $admin = get_user_by( 'login', 'admin' );
 wp_set_current_user( $admin->ID );
-foreach ( array( 'status', 'knowledge', 'faq', 'widget', 'chats', 'advanced' ) as $tab ) {
+foreach ( array( 'status', 'map', 'knowledge', 'learning', 'faq', 'widget', 'chats', 'advanced' ) as $tab ) {
 	$_GET = array( 'page' => WIA_Admin::SLUG, 'tab' => $tab );
 	ob_start();
 	WIA_Admin::page();

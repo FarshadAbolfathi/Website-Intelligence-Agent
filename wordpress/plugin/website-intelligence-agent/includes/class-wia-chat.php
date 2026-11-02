@@ -26,21 +26,33 @@ class WIA_Chat {
 		return self::$messages['currency'];
 	}
 
+	/** Ordinary dialogue replies, decided before any search. */
+	const SMALLTALK = array( 'farewell' => 'farewell', 'howareyou' => 'howareyou', 'identity' => 'identity' );
+
 	/**
-	 * @return array text, language, mode, sources[url,title,checked_at], stale, context_doc
+	 * One question, without conversation state beyond the subject under discussion. converse() adds the dialogue:
+	 * rejections, misses counted toward a handoff, and learning.
+	 *
+	 * @return array text, language, mode, sources[url,title,checked_at], stale, context_doc, suggestions[], actions[label,url], alts[], learn
 	 */
 	public static function answer( $question, $context_doc = 0, $previous_question = '' ) {
 		$question = trim( mb_substr( (string) $question, 0, 1000 ) );
 		$default  = WIA_DB::default_language();
 		$lang     = WIA_Text::detect_language( $question, $default );
-		$reply    = function ( $mode, $text, $sources = array(), $doc = 0 ) use ( $lang, $context_doc ) {
-			return array( 'text' => $text, 'language' => $lang, 'mode' => $mode, 'sources' => $sources, 'stale' => false, 'context_doc' => $doc ? $doc : $context_doc );
+		$reply    = function ( $mode, $text, $sources = array(), $doc = 0, $suggestions = array() ) use ( $lang, $context_doc ) {
+			return self::shape( array( 'text' => $text, 'language' => $lang, 'mode' => $mode, 'sources' => $sources, 'context_doc' => $doc ? $doc : $context_doc, 'suggestions' => $suggestions ) );
 		};
+		$normalized = WIA_Text::normalize( $question );
 		if ( '' === $question || WIA_Text::intent( 'greeting', $question ) ) {
-			return $reply( 'smalltalk', self::msg( $lang, 'greeting' ) );
+			return $reply( 'smalltalk', self::msg( $lang, 'greeting' ), array(), 0, self::starters( $lang ) );
 		}
 		if ( WIA_Text::intent( 'thanks', $question ) ) {
 			return $reply( 'smalltalk', self::msg( $lang, 'thanks' ) );
+		}
+		foreach ( self::SMALLTALK as $intent => $key ) {
+			if ( WIA_Text::intent( $intent, $normalized ) ) {
+				return $reply( 'smalltalk', self::msg( $lang, $key ), array(), 0, 'farewell' === $intent ? array() : self::starters( $lang ) );
+			}
 		}
 		if ( WIA_Text::looks_like_injection( $question ) || WIA_Text::probes_for_secrets( $question ) ) {
 			return $reply( 'guard', self::msg( $lang, 'guard' ) );
@@ -50,8 +62,13 @@ class WIA_Chat {
 		if ( $faq ) {
 			return $reply( 'faq', $faq['answer'] );
 		}
+		if ( WIA_Text::intent( 'contact', $normalized ) ) {
+			$contact = self::contact( $lang );
+			if ( $contact ) {
+				return $contact;
+			}
+		}
 
-		$normalized = WIA_Text::normalize( $question );
 		if ( WIA_Text::intent( 'catalog', $normalized ) || WIA_Text::intent( 'catalog', $question ) ) {
 			$list = WIA_Catalog::listing();
 			if ( $list ) {
@@ -61,21 +78,23 @@ class WIA_Chat {
 					$lines[]   = '• ' . $item['name'];
 					$sources[] = array( 'url' => $item['url'], 'title' => $item['name'], 'checked_at' => gmdate( 'c' ) );
 				}
-				return $reply( 'structured', implode( "\n", $lines ), $sources );
+				return $reply( 'structured', implode( "\n", $lines ), $sources, 0, array_slice( array_column( $list, 'name' ), 0, 4 ) );
 			}
 		}
 
 		$wants_price = WIA_Text::intent( 'price', $normalized );
 		$wants_stock = WIA_Text::intent( 'stock', $normalized );
 		$query       = self::resolve_followup( $question, $normalized, $context_doc, $previous_question );
-		$hits        = WIA_Knowledge::search( $query, 5 );
-		if ( $query === $question && ( $context_doc || '' !== $previous_question ) && self::best_coverage( $hits ) < WIA_Knowledge::MIN_COVERAGE ) {
-			// Not answerable alone, so it may rely on the conversation.
+		$hits        = WIA_Knowledge::search( $query, 8, $info );
+		if ( $query === $question && ! $info['unknown'] && ( $context_doc || '' !== $previous_question ) && self::best_coverage( $hits ) < WIA_Knowledge::MIN_COVERAGE ) {
+			// Not answerable alone, so it may rely on the conversation. A word the site has never seen cannot be
+			// supplied by the conversation: adding the previous subject would only dilute it.
 			$expanded = trim( self::context_subject( $context_doc, $previous_question ) . ' ' . $question );
-			$retry    = WIA_Knowledge::search( $expanded, 5 );
+			$retry    = WIA_Knowledge::search( $expanded, 8, $retry_info );
 			if ( self::best_coverage( $retry ) >= WIA_Knowledge::MIN_COVERAGE ) {
 				$query = $expanded;
 				$hits  = $retry;
+				$info  = $retry_info;
 			}
 		}
 		// Each product holds only part of a comparison's words, so the gate would refuse it. Requiring two
@@ -86,25 +105,310 @@ class WIA_Chat {
 				return $compared;
 			}
 		}
-		if ( ! $hits || self::best_coverage( $hits ) < WIA_Knowledge::MIN_COVERAGE ) {
-			return self::not_found( $lang, $context_doc );
+		$learned = false;
+		if ( self::best_coverage( $hits ) < WIA_Knowledge::MIN_COVERAGE ) {
+			// A phrase visitors taught the assistant: they asked it, then settled on this page.
+			$alias = WIA_Learn::alias_hits( $question, $info );
+			if ( $alias ) {
+				$hits    = $alias;
+				$learned = true;
+			} else {
+				return self::miss( $question, $lang, $hits, $info, $context_doc );
+			}
 		}
 		if ( $wants_price || $wants_stock ) {
+			$choice = self::product_choice( $hits, $query, $question, $info, $lang, true );
+			if ( $choice ) {
+				return $choice;
+			}
 			$fact = self::product_fact( $hits, $query, $lang, $wants_price, $wants_stock, $context_doc );
 			if ( $fact ) {
 				return $fact;
 			}
 		}
-		return self::extractive( $query, $hits, $lang );
+		if ( 'product' === $hits[0]['content_type'] ) {
+			$choice = self::product_choice( $hits, $query, $question, $info, $lang, false );
+			if ( $choice ) {
+				return $choice;
+			}
+		}
+		$answer            = self::extractive( $query, $hits, $lang );
+		$answer['learned'] = $learned;
+		return $answer;
+	}
+
+	/** Every reply has the same keys, so the REST layer and the widget never meet a missing one. */
+	private static function shape( $answer ) {
+		foreach ( array( 'suggestions', 'alts' ) as $key ) {
+			if ( isset( $answer[ $key ] ) ) {
+				$answer[ $key ] = array_values( array_unique( array_map( 'strval', (array) $answer[ $key ] ) ) );
+			}
+		}
+		return array_merge(
+			array( 'text' => '', 'language' => 'en', 'mode' => '', 'sources' => array(), 'stale' => false, 'context_doc' => 0, 'suggestions' => array(), 'actions' => array(), 'alts' => array(), 'learn' => null, 'learned' => false, 'gaps' => array() ),
+			$answer
+		);
+	}
+
+	/**
+	 * The dialogue around answer(): «نه، این نبود» brings back the alternatives, «بله» accepts a single offer,
+	 * repeated misses end with the owner's contact details, and a visitor's final choice after a miss is learned.
+	 */
+	public static function converse( $question, &$state ) {
+		$question   = trim( mb_substr( (string) $question, 0, 1000 ) );
+		$normalized = WIA_Text::normalize( $question );
+		$lang       = WIA_Text::detect_language( $question, WIA_DB::default_language() );
+		$answer     = null;
+		if ( WIA_Text::intent( 'reject', $normalized ) && ! self::carries_question( $normalized ) ) {
+			$alts   = isset( $state['alts'] ) ? array_values( (array) $state['alts'] ) : array();
+			$answer = self::shape(
+				array(
+					'text'        => self::msg( $lang, $alts ? 'rephrase' : 'rephrase_none' ),
+					'language'    => $lang,
+					'mode'        => 'rephrase',
+					'suggestions' => $alts ? $alts : self::starters( $lang ),
+					'context_doc' => 0,
+				)
+			);
+			WIA_Learn::count( 'rejected' );
+		} elseif ( WIA_Text::intent( 'affirm', $normalized ) ) {
+			if ( ! empty( $state['offer'] ) ) {
+				$question = (string) $state['offer'];
+			} else {
+				$answer = self::shape( array( 'text' => self::msg( $lang, 'ack' ), 'language' => $lang, 'mode' => 'smalltalk', 'context_doc' => isset( $state['doc'] ) ? (int) $state['doc'] : 0 ) );
+			}
+		}
+		if ( null === $answer ) {
+			$answer = self::answer( $question, isset( $state['doc'] ) ? (int) $state['doc'] : 0, isset( $state['q'] ) ? (string) $state['q'] : '' );
+		}
+
+		WIA_Learn::after_turn( $state, $question, $answer );
+
+		$missed        = in_array( $answer['mode'], array( 'not_found', 'rephrase' ), true );
+		$state['miss'] = $missed ? ( isset( $state['miss'] ) ? (int) $state['miss'] : 0 ) + 1 : ( 'smalltalk' === $answer['mode'] && isset( $state['miss'] ) ? (int) $state['miss'] : 0 );
+		if ( $missed && $state['miss'] >= 2 ) {
+			$contact = self::contact( $lang );
+			if ( $contact ) {
+				$answer['text']    .= "\n\n" . self::msg( $lang, 'handoff' ) . "\n" . $contact['text'];
+				$answer['actions']  = $contact['actions'];
+				$answer['mode']     = 'handoff';
+				$state['miss']      = 0;
+			}
+		}
+		$state['doc'] = (int) $answer['context_doc'];
+		if ( ! in_array( $answer['mode'], array( 'smalltalk', 'guard', 'rephrase', 'contact', 'handoff' ), true ) ) {
+			$state['q'] = mb_substr( $question, 0, 200 );
+		}
+		$state['alts']  = array_slice( (array) $answer['alts'], 0, 4 );
+		$state['offer'] = 1 === count( $answer['suggestions'] ) ? (string) $answer['suggestions'][0] : '';
+		WIA_Learn::count( 'handoff' === $answer['mode'] ? 'not_found' : $answer['mode'] );
+		WIA_Learn::record_gaps( $answer['gaps'] );
+		return $answer;
+	}
+
+	/** «نه، قیمت کیف مدرسه چنده؟» rejects and asks again in one message: that question must be answered. */
+	private static function carries_question( $normalized ) {
+		$pattern = '/' . str_replace( '/', '\/', WIA_Text::data()['intents']['reject'] ) . '/iu';
+		$rest    = trim( $normalized );
+		// «نه، این نبود» is two rejections in a row.
+		for ( $i = 0; $i < 4 && preg_match( $pattern, $rest ); $i++ ) {
+			$rest = trim( (string) preg_replace( $pattern, '', $rest, 1 ) );
+		}
+		return (bool) WIA_Text::subject_tokens( $rest );
+	}
+
+	/** Suggested first questions: the owner's own, otherwise the site's main categories. */
+	public static function starters( $lang ) {
+		$settings = WIA_DB::settings();
+		$own      = isset( $settings['starters'][ $lang ] ) ? (string) $settings['starters'][ $lang ] : '';
+		$list     = array_values( array_filter( array_map( 'trim', explode( "\n", $own ) ), 'strlen' ) );
+		if ( ! $list ) {
+			$list = self::topics( 3 );
+		}
+		if ( self::has_contact() ) {
+			$list[] = self::msg( $lang, 'contact_chip' );
+		}
+		return array_slice( $list, 0, 4 );
+	}
+
+	/** Main topics of this site: product categories, then post categories, then pages. */
+	public static function topics( $limit = 4 ) {
+		$out = array();
+		foreach ( array( 'product_cat', 'category' ) as $taxonomy ) {
+			if ( ! taxonomy_exists( $taxonomy ) ) {
+				continue;
+			}
+			$terms = get_terms( array( 'taxonomy' => $taxonomy, 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC', 'number' => $limit + 2, 'exclude' => array( (int) get_option( 'default_category' ), (int) get_option( 'default_product_cat' ) ) ) );
+			foreach ( is_wp_error( $terms ) ? array() : $terms as $term ) {
+				$out[] = wp_strip_all_tags( html_entity_decode( $term->name, ENT_QUOTES, 'UTF-8' ) );
+			}
+			if ( count( $out ) >= $limit ) {
+				break;
+			}
+		}
+		if ( count( $out ) < 2 ) {
+			global $wpdb;
+			$pages = $wpdb->get_col( $wpdb->prepare( 'SELECT title FROM ' . WIA_DB::t( 'documents' ) . " WHERE status = 'active' AND content_type IN ('page','product','post') ORDER BY content_type = 'product' DESC, id LIMIT %d", $limit ) ); // phpcs:ignore WordPress.DB
+			$out   = array_merge( $out, array_map( 'strval', (array) $pages ) );
+		}
+		return array_slice( array_values( array_unique( array_filter( $out, 'strlen' ) ) ), 0, $limit );
+	}
+
+	/** The words of the question, as the visitor wrote them, whose stems are in $stems. */
+	private static function display_words( $question, $stems ) {
+		$want = array_flip( (array) $stems );
+		$out  = array();
+		foreach ( preg_split( '/[\s،,؛;:!?؟.«»"()]+/u', (string) $question, -1, PREG_SPLIT_NO_EMPTY ) as $raw ) {
+			foreach ( WIA_Text::tokenize( $raw ) as $token ) {
+				if ( isset( $want[ $token ] ) ) {
+					$out[] = $raw;
+					break;
+				}
+			}
+		}
+		return array_values( array_unique( $out ) );
+	}
+
+	private static function join_words( $words, $lang ) {
+		return implode( 'en' === $lang ? ', ' : '، ', $words );
+	}
+
+	/**
+	 * No confident answer. Instead of a dead end, say exactly which words the site does not know, offer what it
+	 * does have, and remember the unknown words so a visitor's eventual choice can teach the assistant.
+	 */
+	private static function miss( $question, $lang, $hits, $info, $context_doc ) {
+		$unknown = self::display_words( $question, $info['unknown'] );
+		$known   = self::display_words( $question, array_diff( $info['subject'], $info['unknown'] ) );
+		$related = array();
+		foreach ( $hits as $hit ) {
+			if ( $hit['matched'] && ! isset( $related[ $hit['doc_id'] ] ) && count( $related ) < 4 ) {
+				$related[ $hit['doc_id'] ] = $hit;
+			}
+		}
+		$titles = array_values( array_unique( array_map( function ( $h ) { return wp_strip_all_tags( $h['title'] ); }, $related ) ) );
+		if ( $related && $unknown && $known ) {
+			$text = self::msg( $lang, 'partial', array( 'missing' => self::join_words( $unknown, $lang ), 'found' => self::join_words( $known, $lang ) ) );
+		} elseif ( $related ) {
+			$text = self::msg( $lang, 'near' );
+		} else {
+			$settings = WIA_DB::settings();
+			$custom   = isset( $settings['not_found'][ $lang ] ) ? trim( (string) $settings['not_found'][ $lang ] ) : '';
+			$text     = '' !== $custom ? $custom : ( $unknown ? self::msg( $lang, 'not_found_word', array( 'words' => self::join_words( $unknown, $lang ) ) ) : self::msg( $lang, 'not_found' ) );
+			$titles   = self::topics( 4 );
+			if ( $titles ) {
+				$text .= "\n" . self::msg( $lang, 'topics_head' );
+			}
+		}
+		$words = $info['unknown'] ? $info['unknown'] : $info['subject'];
+		return self::shape(
+			array(
+				'text'        => $text,
+				'language'    => $lang,
+				'mode'        => 'not_found',
+				'sources'     => array_values( array_map( array( __CLASS__, 'source' ), $related ) ),
+				'context_doc' => $context_doc,
+				'suggestions' => $titles,
+				'alts'        => $titles,
+				'learn'       => $words ? array( 'words' => array_values( $words ), 'docs' => array_map( 'intval', array_keys( $related ) ) ) : null,
+				'gaps'        => $unknown,
+			)
+		);
+	}
+
+	/**
+	 * «کوله پشتی» matches several products and names none of them fully. Listing them, with live prices, and
+	 * asking which one is better than quoting whichever ranked first.
+	 */
+	private static function product_choice( $hits, $query, $question, $info, $lang, $with_price ) {
+		$q        = array_unique( WIA_Text::tokenize( $query ) );
+		$products = array();
+		$best     = 0.0;
+		foreach ( $hits as $hit ) {
+			$name = array_unique( WIA_Text::tokenize( $hit['title'] ) );
+			if ( 'product' !== $hit['content_type'] || ! $name || isset( $products[ $hit['doc_id'] ] ) || $hit['coverage'] < WIA_Knowledge::MIN_COVERAGE ) {
+				continue;
+			}
+			$ratio = count( array_intersect( $name, $q ) ) / count( $name );
+			$best  = max( $best, $ratio );
+			$products[ $hit['doc_id'] ] = $hit;
+		}
+		if ( count( $products ) < 2 || $best >= 1.0 ) {
+			return null;
+		}
+		$lines   = array( self::msg( $lang, 'clarify_many', array( 'topic' => self::join_words( self::display_words( $question, $info['subject'] ), $lang ) ) ) );
+		$names   = array();
+		$sources = array();
+		foreach ( array_slice( $products, 0, 5 ) as $hit ) {
+			$live = WIA_Catalog::live( (int) $hit['source_id'] );
+			if ( ! $live || in_array( $live['name'], $names, true ) ) {
+				continue;
+			}
+			$price     = '' !== (string) $live['price'] ? trim( WIA_Catalog::number( $live['price'], $lang ) . ' ' . WIA_Catalog::currency( $lang, self::currencies() ) ) : '';
+			$lines[]   = '• ' . $live['name'] . ( $with_price && '' !== $price ? ': ' . $price : '' );
+			$names[]   = $live['name'];
+			$sources[] = array( 'url' => $live['url'], 'title' => $live['name'], 'checked_at' => gmdate( 'c' ) );
+		}
+		if ( count( $names ) < 2 ) {
+			return null;
+		}
+		return self::shape( array( 'text' => implode( "\n", $lines ), 'language' => $lang, 'mode' => 'clarify', 'sources' => $sources, 'suggestions' => array_slice( $names, 0, 4 ), 'alts' => array_slice( $names, 0, 4 ) ) );
+	}
+
+	/** Contact details the owner entered, or the site's contact page. Null when there are none. */
+	public static function contact( $lang ) {
+		$c       = WIA_DB::settings()['contact'];
+		$lines   = array();
+		$actions = array();
+		$phone   = trim( (string) $c['phone'] );
+		if ( '' !== $phone ) {
+			$lines[]   = self::msg( $lang, 'contact_phone', array( 'v' => $phone ) );
+			$actions[] = array( 'label' => $phone, 'url' => 'tel:' . preg_replace( '/[^\d+]/', '', WIA_Text::normalize( $phone ) ) );
+		}
+		if ( is_email( $c['email'] ) ) {
+			$lines[]   = self::msg( $lang, 'contact_email', array( 'v' => $c['email'] ) );
+			$actions[] = array( 'label' => $c['email'], 'url' => 'mailto:' . $c['email'] );
+		}
+		$wa = preg_replace( '/\D/', '', WIA_Text::normalize( (string) $c['whatsapp'] ) );
+		if ( strlen( $wa ) >= 8 ) {
+			$actions[] = array( 'label' => 'WhatsApp', 'url' => 'https://wa.me/' . $wa );
+		}
+		$tg = preg_replace( '/[^A-Za-z0-9_]/', '', (string) preg_replace( '#^(?:https?://)?(?:t\.me/|@)#i', '', trim( (string) $c['telegram'] ) ) );
+		if ( strlen( $tg ) >= 4 ) {
+			$actions[] = array( 'label' => 'Telegram', 'url' => 'https://t.me/' . $tg );
+		}
+		$page = '' !== (string) $c['page'] ? array( 'url' => (string) $c['page'], 'title' => self::msg( $lang, 'contact_page' ) ) : self::contact_page();
+		if ( $page ) {
+			$actions[] = array( 'label' => $page['title'], 'url' => $page['url'] );
+		}
+		if ( '' !== trim( (string) $c['hours'] ) ) {
+			$lines[] = self::msg( $lang, 'contact_hours', array( 'v' => trim( (string) $c['hours'] ) ) );
+		}
+		if ( ! $actions ) {
+			return null;
+		}
+		return self::shape( array( 'text' => trim( self::msg( $lang, 'contact_head' ) . "\n" . implode( "\n", $lines ) ), 'language' => $lang, 'mode' => 'contact', 'actions' => $actions ) );
+	}
+
+	public static function has_contact() {
+		$c = WIA_DB::settings()['contact'];
+		return '' !== trim( $c['phone'] . $c['email'] . $c['whatsapp'] . $c['telegram'] . $c['page'] ) || (bool) self::contact_page();
+	}
+
+	/** A published page whose title says it is the contact page. */
+	private static function contact_page() {
+		global $wpdb;
+		$row = $wpdb->get_row( 'SELECT url, title FROM ' . WIA_DB::t( 'documents' ) . " WHERE status = 'active' AND content_type IN ('contact','page') AND (title LIKE '%تماس%' OR title LIKE '%ارتباط با%' OR title LIKE '%contact%' OR title LIKE '%اتصل%' OR title LIKE '%تواصل%') ORDER BY CHAR_LENGTH(title) LIMIT 1", ARRAY_A ); // phpcs:ignore WordPress.DB
+		return $row ? array( 'url' => $row['url'], 'title' => wp_strip_all_tags( $row['title'] ) ) : null;
 	}
 
 	private static function not_found( $lang, $context_doc = 0 ) {
 		$settings = WIA_DB::settings();
 		$custom   = isset( $settings['not_found'][ $lang ] ) ? trim( (string) $settings['not_found'][ $lang ] ) : '';
-		return array( 'text' => '' !== $custom ? $custom : self::msg( $lang, 'not_found' ), 'language' => $lang, 'mode' => 'not_found', 'sources' => array(), 'stale' => false, 'context_doc' => $context_doc );
+		return self::shape( array( 'text' => '' !== $custom ? $custom : self::msg( $lang, 'not_found' ), 'language' => $lang, 'mode' => 'not_found', 'context_doc' => $context_doc ) );
 	}
 
-	private static function source( $hit ) {
+	public static function source( $hit ) {
 		return array( 'url' => $hit['url'], 'title' => $hit['title'], 'checked_at' => mysql2date( 'c', $hit['crawl_date'], false ) );
 	}
 
@@ -153,8 +457,7 @@ class WIA_Chat {
 
 	/** «موجوده؟» names no subject and refers back. «شرایط ارسال چیست؟» has its own subject and must stand alone. */
 	private static function is_followup( $question, $normalized ) {
-		$soft    = WIA_Text::soft_stems();
-		$subject = array_filter( WIA_Text::tokenize( $question ), function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } );
+		$subject = WIA_Text::subject_tokens( $question );
 		return ! $subject || ( count( $subject ) <= 1 && WIA_Text::intent( 'followup', $normalized ) );
 	}
 
@@ -224,13 +527,14 @@ class WIA_Chat {
 			$key     = array( 'in_stock' => 'stock_in', 'out_of_stock' => 'stock_out', 'preorder' => 'stock_pre' );
 			$lines[] = self::msg( $lang, isset( $key[ $live['availability'] ] ) ? $key[ $live['availability'] ] : 'stock_unknown', array( 'name' => $live['name'] ) );
 		}
-		return array(
-			'text'        => implode( "\n", $lines ),
-			'language'    => $lang,
-			'mode'        => 'structured',
-			'sources'     => array( array( 'url' => $live['url'], 'title' => $live['name'], 'checked_at' => gmdate( 'c' ) ) ),
-			'stale'       => false,
-			'context_doc' => (int) $hit['doc_id'],
+		return self::shape(
+			array(
+				'text'        => implode( "\n", $lines ),
+				'language'    => $lang,
+				'mode'        => 'structured',
+				'sources'     => array( array( 'url' => $live['url'], 'title' => $live['name'], 'checked_at' => gmdate( 'c' ) ) ),
+				'context_doc' => (int) $hit['doc_id'],
+			)
 		);
 	}
 
@@ -259,7 +563,7 @@ class WIA_Chat {
 			$lines[]   = '• ' . $live[ $i ]['name'] . ': ' . $price . ( $first ? ' - ' . $first[0] : '' );
 			$sources[] = array( 'url' => $live[ $i ]['url'], 'title' => $live[ $i ]['name'], 'checked_at' => gmdate( 'c' ) );
 		}
-		return array( 'text' => implode( "\n", $lines ), 'language' => $lang, 'mode' => 'structured', 'sources' => $sources, 'stale' => false, 'context_doc' => 0 );
+		return self::shape( array( 'text' => implode( "\n", $lines ), 'language' => $lang, 'mode' => 'structured', 'sources' => $sources ) );
 	}
 
 	private static function extractive( $query, $hits, $lang ) {
@@ -278,7 +582,22 @@ class WIA_Chat {
 		if ( '' !== $best['language'] && $best['language'] !== $lang ) {
 			$head = self::msg( $lang, 'other_lang' ) . "\n" . $head;
 		}
-		return array( 'text' => $head . "\n" . $quote, 'language' => $lang, 'mode' => 'extractive', 'sources' => array( self::source( $best ) ), 'stale' => false, 'context_doc' => (int) $best['doc_id'] );
+		$text = $head . "\n" . $quote;
+		if ( 'product' === $best['content_type'] ) {
+			$live = WIA_Catalog::live( (int) $best['source_id'] );
+			if ( $live && '' !== (string) $live['price'] ) {
+				$text .= "\n" . self::msg( $lang, 'price_line', array( 'price' => trim( WIA_Catalog::number( $live['price'], $lang ) . ' ' . WIA_Catalog::currency( $lang, self::currencies() ) ) ) );
+			}
+		}
+		// Other pages that also answer well, offered as next steps.
+		$related = array();
+		foreach ( $hits as $hit ) {
+			$title = wp_strip_all_tags( $hit['title'] );
+			if ( (int) $hit['doc_id'] !== (int) $best['doc_id'] && $hit['coverage'] >= WIA_Knowledge::MIN_COVERAGE && ! in_array( $title, $related, true ) && count( $related ) < 3 ) {
+				$related[] = $title;
+			}
+		}
+		return self::shape( array( 'text' => $text, 'language' => $lang, 'mode' => 'extractive', 'sources' => array( self::source( $best ) ), 'context_doc' => (int) $best['doc_id'], 'suggestions' => $related, 'alts' => $related ) );
 	}
 
 	/**

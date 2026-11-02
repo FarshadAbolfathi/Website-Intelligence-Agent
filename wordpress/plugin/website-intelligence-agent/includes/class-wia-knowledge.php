@@ -179,9 +179,13 @@ class WIA_Knowledge {
 		return $df;
 	}
 
-	/** @return array of hits: chunk_id, doc_id, score, coverage, heading, body, language, url, title, content_type, source_type, source_id, crawl_date */
-	public static function search( $query, $limit = 5 ) {
+	/**
+	 * @param array $info filled with 'subject' (subject terms after typo fixes) and 'unknown' (subject terms this site has never seen)
+	 * @return array of hits: chunk_id, doc_id, score, coverage, matched, heading, body, language, url, title, content_type, source_type, source_id, crawl_date
+	 */
+	public static function search( $query, $limit = 5, &$info = null ) {
 		global $wpdb;
+		$info  = array( 'subject' => array(), 'unknown' => array() );
 		$terms = WIA_Text::query_terms( $query );
 		if ( ! $terms ) {
 			return array();
@@ -207,6 +211,10 @@ class WIA_Knowledge {
 			$terms = array_values( array_unique( $terms ) );
 			$df    = self::document_frequency( $terms );
 		}
+		$soft    = WIA_Text::soft_stems( $query );
+		$subject = array_values( array_filter( $base, function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } ) );
+		$subject = $subject ? $subject : $base;
+		$info    = array( 'subject' => $subject, 'unknown' => array_values( array_filter( $subject, function ( $w ) use ( $df ) { return ! isset( $df[ $w ] ); } ) ) );
 		if ( ! $df ) {
 			return array();
 		}
@@ -214,9 +222,6 @@ class WIA_Knowledge {
 		foreach ( $df as $term => $f ) {
 			$idf[ $term ] = log( 1 + ( $n - $f + 0.5 ) / ( $f + 0.5 ) );
 		}
-		$soft    = WIA_Text::soft_stems();
-		$subject = array_values( array_filter( $base, function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } ) );
-		$subject = $subject ? $subject : $base;
 		$weights = array();
 		foreach ( $subject as $w ) {
 			$weights[ $w ] = isset( $idf[ $w ] ) ? $idf[ $w ] : log( 1 + $n ) + 1;
@@ -253,17 +258,32 @@ class WIA_Knowledge {
 			if ( ! isset( $by[ $id ] ) ) {
 				continue;
 			}
-			$hit = 0.0;
+			$hit  = 0.0;
+			$have = array();
 			foreach ( $weights as $w => $v ) {
 				if ( isset( $matched[ $id ][ $w ] ) ) {
-					$hit += $v;
+					$hit   += $v;
+					$have[] = $w;
 				}
 			}
 			$by[ $id ]['score']    = round( $scores[ $id ], 4 );
 			$by[ $id ]['coverage'] = round( $hit / $total, 4 );
+			$by[ $id ]['matched']  = $have;
 			$out[]                 = $by[ $id ];
 		}
 		return $out;
+	}
+
+	/** True when every one of these stems appears in the site's active content. */
+	public static function knows( $stems ) {
+		$stems = array_values( array_unique( (array) $stems ) );
+		return $stems && count( self::document_frequency( $stems ) ) === count( $stems );
+	}
+
+	/** Number of distinct words the assistant knows. */
+	public static function vocabulary() {
+		global $wpdb;
+		return (int) $wpdb->get_var( 'SELECT COUNT(DISTINCT term) FROM ' . WIA_DB::t( 'postings' ) ); // phpcs:ignore WordPress.DB
 	}
 
 	public static function stats() {

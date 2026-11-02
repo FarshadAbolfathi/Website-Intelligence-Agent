@@ -95,14 +95,31 @@ class WIA_Text {
 		return self::$stop;
 	}
 
-	public static function soft_stems() {
+	/**
+	 * Soft words for this question. «كيف» (Arabic "how") and «کیف» (Persian "bag") are the same string after
+	 * normalisation, so such words are soft only when the question itself is Arabic.
+	 */
+	public static function soft_stems( $text = '' ) {
 		if ( null === self::$soft ) {
 			self::$soft = array();
 			foreach ( self::data()['soft_words'] as $w ) {
 				self::$soft[ self::stem( $w ) ] = 1;
 			}
 		}
+		if ( '' !== $text && 'ar' === self::detect_language( $text, 'fa' ) ) {
+			$out = self::$soft;
+			foreach ( self::data()['arabic_function_words']['words'] as $w ) {
+				$out[ self::stem( $w ) ] = 1;
+			}
+			return $out;
+		}
 		return self::$soft;
+	}
+
+	/** @return string[] the words of a question that name its subject */
+	public static function subject_tokens( $text ) {
+		$soft = self::soft_stems( $text );
+		return array_values( array_filter( self::tokenize( $text ), function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } ) );
 	}
 
 	/** @return string[] normalised, stemmed search tokens */

@@ -18,7 +18,7 @@ from sqlalchemy import and_, delete, func, insert, select, update
 from sqlalchemy.engine import Engine
 
 from core.knowledge import schema as t
-from core.text.normalize import SOFT_STEMS, arabic_clitic_variant, normalize, tokenize
+from core.text.normalize import arabic_clitic_variant, normalize, soft_stems_for, subject_tokens, tokenize
 
 
 class Corpus(str, Enum):
@@ -97,6 +97,7 @@ class KnowledgeStore(Protocol):
     def touch_doc(self, doc_id: int, **fields) -> None: ...
     def set_status(self, doc_id: int, status: str, dup_of: int | None = None) -> None: ...
     def search_lexical(self, scope: Scope, query: str, limit: int = 10) -> list[ChunkHit]: ...
+    def unknown_terms(self, scope: Scope, text: str) -> list[str]: ...
     def hits_for_chunks(self, scope: Scope, ids: list[int]) -> dict[int, ChunkHit]: ...
 
 
@@ -252,6 +253,17 @@ class SqlKnowledgeStore:
                     best, best_df = row.term, row.df
         return best
 
+    def unknown_terms(self, scope: Scope, text: str) -> list[str]:
+        """Subject words of ``text`` that this scope has never seen, even allowing one typo."""
+        words = list(dict.fromkeys(subject_tokens(text)))
+        if not words:
+            return []
+        join = t.postings.join(t.chunks, t.chunks.c.id == t.postings.c.chunk_id).join(t.documents, t.documents.c.id == t.chunks.c.doc_id)
+        conds = [t.postings.c.site_id == scope.site_id, t.postings.c.corpus == scope.corpus.value, t.documents.c.status == "active", t.postings.c.term.in_(words)]
+        with self.engine.connect() as c:
+            known = {row[0] for row in c.execute(select(t.postings.c.term).select_from(join).where(*conds).distinct())}
+        return [w for w in words if w not in known and not self.known_similar_term(scope, w)]
+
     def search_lexical(self, scope: Scope, query: str, limit: int = 10) -> list[ChunkHit]:
         terms = query_terms(query)
         if not terms:
@@ -287,7 +299,8 @@ class SqlKnowledgeStore:
 
         idf = {w: math.log(1 + (n - f + 0.5) / (f + 0.5)) for w, f in df.items()}
         # A query word absent from this site weighs the most: «X» that we have never seen must block the answer.
-        subject_tokens = [w for w in base_tokens if w not in SOFT_STEMS] or base_tokens
+        soft = soft_stems_for(query)
+        subject_tokens = [w for w in base_tokens if w not in soft] or base_tokens
         weights = {w: idf.get(w, math.log(1 + n) + 1) for w in subject_tokens} or dict.fromkeys(df, 1.0)
         total_weight = sum(weights.values()) or 1.0
 

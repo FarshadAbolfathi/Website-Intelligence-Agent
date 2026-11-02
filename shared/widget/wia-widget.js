@@ -31,6 +31,8 @@
 
 	function isRtl(lang) { return lang === 'fa' || lang === 'ar'; }
 	function safeUrl(url) { return /^https?:\/\//i.test(String(url || '')) ? String(url) : ''; }
+	// Contact buttons may also call or write: tel: digits only, mailto: without markup characters.
+	function safeAction(url) { url = String(url || ''); return safeUrl(url) || (/^tel:\+?[0-9]+$/i.test(url) || /^mailto:[^\s<>"']+$/i.test(url) ? url : ''); }
 	function pick(map, lang, fallback) { return (map && map[lang]) || fallback; }
 
 	function start(config) {
@@ -58,6 +60,8 @@
 			'.bot{background:#fff;border:1px solid #e5e7eb;align-self:flex-start}.me{background:' + color + ';color:#fff;align-self:flex-end}' +
 			'.src{margin-top:6px;padding-top:6px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280}.src a{display:block;color:' + color + ';text-decoration:underline;overflow-wrap:anywhere}' +
 			'.old{margin-top:4px;font-size:12px;color:#92400e}.typing{color:#6b7280;font-size:13px}' +
+			'.chips{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;max-width:92%}.chip{border:1px solid ' + color + ';background:#fff;color:' + color + ';border-radius:16px;padding:5px 11px;font-size:13px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chip:hover{background:' + color + ';color:#fff}' +
+			'.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.act{display:inline-block;background:' + color + ';color:#fff;text-decoration:none;border-radius:8px;padding:5px 10px;font-size:13px}' +
 			'form{display:flex;gap:8px;padding:10px;border-top:1px solid #e5e7eb;background:#fff}textarea{flex:1;resize:none;height:42px;max-height:100px;padding:9px 10px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;color:#111;background:#fff}' +
 			'.send{border:0;border-radius:10px;background:' + color + ';color:#fff;padding:0 14px;cursor:pointer;font-size:14px}.send:disabled{opacity:.55;cursor:default}' +
 			'@media (max-width:480px){.panel{bottom:0;left:0;right:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0}}' +
@@ -99,8 +103,33 @@
 				});
 				bubble.appendChild(src);
 			}
+			var acts = (item.actions || []).filter(function (a) { return a && safeAction(a.url); });
+			if (acts.length) {
+				var box = document.createElement('div'); box.className = 'acts';
+				acts.slice(0, 5).forEach(function (a) {
+					var link = document.createElement('a'); link.className = 'act'; link.href = safeAction(a.url); link.textContent = String(a.label || a.url); link.rel = 'noopener nofollow';
+					if (safeUrl(a.url)) link.target = '_blank';
+					box.appendChild(link);
+				});
+				bubble.appendChild(box);
+			}
 			log.appendChild(bubble);
+			chips(item.suggestions);
 			log.scrollTop = log.scrollHeight;
+		}
+		// Suggested replies under the latest answer. Choosing one sends it as the visitor's message.
+		var chipRow = null;
+		function chips(list) {
+			if (chipRow) { chipRow.remove(); chipRow = null; }
+			list = (list || []).filter(function (x) { return typeof x === 'string' && x.trim(); }).slice(0, 4);
+			if (!list.length) return;
+			chipRow = document.createElement('div'); chipRow.className = 'chips';
+			list.forEach(function (label) {
+				var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = label; b.title = label;
+				b.addEventListener('click', function () { if (!busy) { input.value = label; submit(); } });
+				chipRow.appendChild(b);
+			});
+			log.appendChild(chipRow);
 		}
 		function add(item) { saved.items.push(item); saved.items = saved.items.slice(-40); write(saved); draw(item); }
 
@@ -110,7 +139,7 @@
 			if (open) {
 				if (!log.childNodes.length) {
 					if (saved.items.length) saved.items.forEach(draw);
-					else draw({ role: 'bot', text: pick(config.welcome, lang, text.welcome) });
+					else draw({ role: 'bot', text: pick(config.welcome, lang, text.welcome), suggestions: config.starters || [] });
 				}
 				input.focus();
 			} else fab.focus();
@@ -126,6 +155,7 @@
 			var message = input.value.trim();
 			if (!message || busy) return;
 			busy = true; send.disabled = true; input.value = '';
+			if (chipRow) { chipRow.remove(); chipRow = null; }
 			add({ role: 'me', text: message });
 			var typing = document.createElement('div'); typing.className = 'm bot typing'; typing.textContent = text.typing; log.appendChild(typing); log.scrollTop = log.scrollHeight;
 			fetch(endpoint + '/chat', {
@@ -138,7 +168,7 @@
 			}).then(function (data) {
 				saved.conversationId = data.conversation_id || saved.conversationId;
 				typing.remove();
-				add({ role: 'bot', text: String(data.answer || ''), sources: data.sources || [], stale: !!data.stale });
+				add({ role: 'bot', text: String(data.answer || ''), sources: data.sources || [], stale: !!data.stale, suggestions: data.suggestions || [], actions: data.actions || [] });
 			}).catch(function (err) {
 				typing.remove();
 				draw({ role: 'bot', text: err.message === 'limited' ? text.limited : text.error });

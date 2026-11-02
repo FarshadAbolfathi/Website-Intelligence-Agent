@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /private/
+
+Sitemap: http://ref:8080/sitemap.xml

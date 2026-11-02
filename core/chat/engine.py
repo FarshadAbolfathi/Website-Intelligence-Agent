@@ -18,7 +18,7 @@ from core.knowledge.store import ChunkHit, Corpus, Scope, SqlKnowledgeStore
 from core.llm.providers import LLMError, LLMProvider, Message, NoLLM
 from core.retrieval.hybrid import Retriever
 from core.security.injection import looks_like_injection, probes_for_secrets, wrap_untrusted
-from core.text.normalize import LANGUAGE, SOFT_STEMS, detect_language, normalize, sentences, tokenize
+from core.text.normalize import LANGUAGE, detect_language, normalize, sentences, subject_tokens, tokenize
 
 MAX_QUESTION_CHARS = 1000
 MAX_SOURCE_CHARS = 1200
@@ -155,8 +155,9 @@ class ChatEngine:
         wants_stock = bool(_STOCK.search(normalized))
         query = self._resolve_followup(question, history, context_doc_id, scope)
         retrieval = self.retriever.search(scope, query, limit=5)
-        if not retrieval.confident and query == question and (history or context_doc_id is not None):
-            # Not answerable alone, so it may rely on the conversation («چند مگاپیکسل دوربینش هست؟»).
+        # Not answerable alone, so it may rely on the conversation («چند مگاپیکسل دوربینش هست؟»). A word the site
+        # has never seen cannot be supplied by the conversation: adding the previous subject would only dilute it.
+        if not retrieval.confident and query == question and (history or context_doc_id is not None) and not self.store.unknown_terms(scope, question):
             expanded = f"{self._context_subject(history, context_doc_id, scope)} {question}".strip()
             retry = self.retriever.search(scope, expanded, limit=5)
             if retry.confident:
@@ -224,7 +225,7 @@ class ChatEngine:
 
     def _is_followup(self, question: str) -> bool:
         """«موجوده؟» names no subject and refers back. «شرایط ارسال چیست؟» has its own subject and must stand alone."""
-        subject_words = [w for w in tokenize(question) if w not in SOFT_STEMS]
+        subject_words = subject_tokens(question)
         return not subject_words or (len(subject_words) <= 1 and bool(_FOLLOWUP.search(normalize(question))))
 
     def _resolve_followup(self, question: str, history: list[ChatTurn], context_doc_id: int | None, scope: Scope) -> str:
