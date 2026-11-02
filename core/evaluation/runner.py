@@ -143,7 +143,7 @@ class Evaluator:
         if answer.mode == "structured":
             # Structured answers state stored facts. The date and stock wording come from templates, so numbers are the check.
             product_numbers = numbers_in(" ".join(cited_sources))
-            date_free = re.sub(r"[\d۰-۹٠-٩]{4}-[\d۰-۹٠-٩]{2}-[\d۰-۹٠-٩]{2}", " ", answer_body)
+            date_free = re.sub(r"[\d۰-۹٠-٩]{4}[-/][\d۰-۹٠-٩]{2}[-/][\d۰-۹٠-٩]{2}", " ", answer_body)
             item.unsupported_numbers = sorted(numbers_in(date_free) - product_numbers)
             item.grounded, item.support = not item.unsupported_numbers, 1.0
         else:

@@ -18,7 +18,7 @@ from core.knowledge.store import ChunkHit, Corpus, Scope, SqlKnowledgeStore
 from core.llm.providers import LLMError, LLMProvider, Message, NoLLM
 from core.retrieval.hybrid import Retriever
 from core.security.injection import looks_like_injection, probes_for_secrets, wrap_untrusted
-from core.text.normalize import LANGUAGE, detect_language, normalize, sentences, tokenize
+from core.text.normalize import LANGUAGE, SOFT_STEMS, detect_language, normalize, sentences, tokenize
 
 MAX_QUESTION_CHARS = 1000
 MAX_SOURCE_CHARS = 1200
@@ -74,9 +74,28 @@ def fmt_number(value: str, lang: str) -> str:
     return text
 
 
+def to_jalali(year: int, month: int, day: int) -> tuple[int, int, int]:
+    """Gregorian to the Persian calendar, using the standard arithmetic conversion."""
+    days_before = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    y = year + 1 if month > 2 else year
+    days = 355666 + 365 * year + (y + 3) // 4 - (y + 99) // 100 + (y + 399) // 400 + day + days_before[month - 1]
+    jy = -1595 + 33 * (days // 12053)
+    days %= 12053
+    jy += 4 * (days // 1461)
+    days %= 1461
+    if days > 365:
+        jy += (days - 1) // 365
+        days = (days - 1) % 365
+    if days < 186:
+        return jy, 1 + days // 31, 1 + days % 31
+    return jy, 7 + (days - 186) // 30, 1 + (days - 186) % 30
+
+
 def fmt_date(value: datetime, lang: str) -> str:
-    text = value.strftime("%Y-%m-%d")
-    return text.translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")) if lang == "fa" else text
+    if lang == "fa":
+        jy, jm, jd = to_jalali(value.year, value.month, value.day)
+        return f"{jy}/{jm:02d}/{jd:02d}".translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
+    return value.strftime("%Y-%m-%d")
 
 
 def as_utc(value: datetime) -> datetime:
@@ -136,6 +155,12 @@ class ChatEngine:
         wants_stock = bool(_STOCK.search(normalized))
         query = self._resolve_followup(question, history, context_doc_id, scope)
         retrieval = self.retriever.search(scope, query, limit=5)
+        if not retrieval.confident and query == question and (history or context_doc_id is not None):
+            # Not answerable alone, so it may rely on the conversation («چند مگاپیکسل دوربینش هست؟»).
+            expanded = f"{self._context_subject(history, context_doc_id, scope)} {question}".strip()
+            retry = self.retriever.search(scope, expanded, limit=5)
+            if retry.confident:
+                query, retrieval = expanded, retry
         hits = [h for h in retrieval.hits if h.corpus == Corpus.OWN.value]  # defence in depth
         # Each product holds only part of a comparison's words, so the gate would refuse it. Requiring two
         # products that are really named in the question is the stricter check here.
@@ -186,25 +211,27 @@ class ChatEngine:
         return best if best_score >= 0.6 else None
 
     # ---- follow-ups ------------------------------------------------------------
-    def _resolve_followup(self, question: str, history: list[ChatTurn], context_doc_id: int | None, scope: Scope) -> str:
-        """A question that refers back («قیمتش چنده؟») is expanded with the previous subject, never rewritten by a model."""
-        if not history and context_doc_id is None:
-            return question
-        tokens = tokenize(question)
-        if not _FOLLOWUP.search(normalize(question)) and len(tokens) > 2:
-            return question
-        subject = ""
+    def _context_subject(self, history: list[ChatTurn], context_doc_id: int | None, scope: Scope) -> str:
         if context_doc_id:
             doc = self.store.get_doc(scope, context_doc_id)
             if doc:
                 product = (doc.get("structured") or {}).get("product", {})
-                subject = product.get("name") or doc["title"]
-        if not subject:
-            for turn in reversed(history):
-                if turn.role == "user":
-                    subject = turn.text
-                    break
-        return f"{subject} {question}".strip()
+                return product.get("name") or doc["title"]
+        for turn in reversed(history):
+            if turn.role == "user":
+                return turn.text
+        return ""
+
+    def _is_followup(self, question: str) -> bool:
+        """«موجوده؟» names no subject and refers back. «شرایط ارسال چیست؟» has its own subject and must stand alone."""
+        subject_words = [w for w in tokenize(question) if w not in SOFT_STEMS]
+        return not subject_words or (len(subject_words) <= 1 and bool(_FOLLOWUP.search(normalize(question))))
+
+    def _resolve_followup(self, question: str, history: list[ChatTurn], context_doc_id: int | None, scope: Scope) -> str:
+        """Expanded with the previous subject when it refers back. No model rewrites the question."""
+        if (history or context_doc_id is not None) and self._is_followup(question):
+            return f"{self._context_subject(history, context_doc_id, scope)} {question}".strip()
+        return question
 
     # ---- structured facts ------------------------------------------------------
     def _catalog_answer(self, scope: Scope, lang: str) -> Answer | None:

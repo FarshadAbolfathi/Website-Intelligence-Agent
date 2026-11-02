@@ -1,0 +1,4 @@
+{$WIA_DOMAIN} {
+	encode gzip
+	reverse_proxy api:8000
+}

@@ -34,7 +34,7 @@ FOOTERS = {
 
 def page(lang: str, title: str, main: str, *, head: str = "") -> str:
     direction = "ltr" if lang == "en" else "rtl"
-    return f"""<!doctype html><html lang="{lang}" dir="{direction}"><head><meta charset="utf-8"><title>{title}</title>{head}</head>
+    return f"""<!doctype html><html lang="{lang}" dir="{direction}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>{head}</head>
 <body><header><a href="/">HOME</a></header>
 <nav class="menu"><ul><li><a href="/">home</a></li><li><a href="/about">about</a></li><li><a href="/shipping">shipping</a></li></ul></nav>
 <main>{main}</main><div class="legal-note"><p>{FOOTERS[lang]}</p></div><footer><p>footer text must not be indexed</p></footer>

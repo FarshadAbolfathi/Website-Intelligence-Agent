@@ -69,6 +69,15 @@ class WIA_Chat {
 		$wants_stock = WIA_Text::intent( 'stock', $normalized );
 		$query       = self::resolve_followup( $question, $normalized, $context_doc, $previous_question );
 		$hits        = WIA_Knowledge::search( $query, 5 );
+		if ( $query === $question && ( $context_doc || '' !== $previous_question ) && self::best_coverage( $hits ) < WIA_Knowledge::MIN_COVERAGE ) {
+			// Not answerable alone, so it may rely on the conversation.
+			$expanded = trim( self::context_subject( $context_doc, $previous_question ) . ' ' . $question );
+			$retry    = WIA_Knowledge::search( $expanded, 5 );
+			if ( self::best_coverage( $retry ) >= WIA_Knowledge::MIN_COVERAGE ) {
+				$query = $expanded;
+				$hits  = $retry;
+			}
+		}
 		// Each product holds only part of a comparison's words, so the gate would refuse it. Requiring two
 		// products that are really named in the question is the stricter check here.
 		if ( $hits && WIA_Text::intent( 'compare', $normalized ) ) {
@@ -77,11 +86,7 @@ class WIA_Chat {
 				return $compared;
 			}
 		}
-		$best = 0.0;
-		foreach ( $hits as $hit ) {
-			$best = max( $best, (float) $hit['coverage'] );
-		}
-		if ( ! $hits || $best < WIA_Knowledge::MIN_COVERAGE ) {
+		if ( ! $hits || self::best_coverage( $hits ) < WIA_Knowledge::MIN_COVERAGE ) {
 			return self::not_found( $lang, $context_doc );
 		}
 		if ( $wants_price || $wants_stock ) {
@@ -135,22 +140,37 @@ class WIA_Chat {
 		return $best_score >= 0.6 ? $best : null;
 	}
 
-	private static function resolve_followup( $question, $normalized, $context_doc, $previous_question ) {
-		if ( ! $context_doc && '' === $previous_question ) {
-			return $question;
-		}
-		if ( ! WIA_Text::intent( 'followup', $normalized ) && count( WIA_Text::tokenize( $question ) ) > 2 ) {
-			return $question;
-		}
-		$subject = '';
+	private static function context_subject( $context_doc, $previous_question ) {
 		if ( $context_doc ) {
 			global $wpdb;
-			$subject = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT title FROM ' . WIA_DB::t( 'documents' ) . " WHERE id = %d AND status = 'active'", $context_doc ) ); // phpcs:ignore WordPress.DB
+			$title = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT title FROM ' . WIA_DB::t( 'documents' ) . " WHERE id = %d AND status = 'active'", $context_doc ) ); // phpcs:ignore WordPress.DB
+			if ( '' !== $title ) {
+				return $title;
+			}
 		}
-		if ( '' === $subject ) {
-			$subject = $previous_question;
+		return (string) $previous_question;
+	}
+
+	/** «موجوده؟» names no subject and refers back. «شرایط ارسال چیست؟» has its own subject and must stand alone. */
+	private static function is_followup( $question, $normalized ) {
+		$soft    = WIA_Text::soft_stems();
+		$subject = array_filter( WIA_Text::tokenize( $question ), function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } );
+		return ! $subject || ( count( $subject ) <= 1 && WIA_Text::intent( 'followup', $normalized ) );
+	}
+
+	private static function resolve_followup( $question, $normalized, $context_doc, $previous_question ) {
+		if ( ( $context_doc || '' !== $previous_question ) && self::is_followup( $question, $normalized ) ) {
+			return trim( self::context_subject( $context_doc, $previous_question ) . ' ' . $question );
 		}
-		return trim( $subject . ' ' . $question );
+		return $question;
+	}
+
+	private static function best_coverage( $hits ) {
+		$best = 0.0;
+		foreach ( $hits as $hit ) {
+			$best = max( $best, (float) $hit['coverage'] );
+		}
+		return $best;
 	}
 
 	/** Only a product whose name is really in the question may answer. A nearby product must not answer for another. */

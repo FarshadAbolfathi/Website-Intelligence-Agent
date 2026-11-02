@@ -63,6 +63,11 @@ $r  = rest_chat( 'قیمت گوشی ایکس چقدر است؟' );
 $r2 = rest_chat( 'موجوده؟', $r->get_data()['conversation_id'] );
 ok( false !== strpos( $r2->get_data()['answer'], 'گوشی ایکس' ) && false !== strpos( $r2->get_data()['answer'], 'موجود است' ), 'follow-up uses the product from context', $r2->get_data() );
 
+// A new question with its own subject must not inherit the product under discussion.
+page( 'شرایط ارسال', '<p>ارسال سفارش به سراسر کشور با پست پیشتاز بین ۲ تا ۴ روز کاری انجام می‌شود.</p>' );
+$r3 = rest_chat( 'شرایط ارسال چیست؟', $r->get_data()['conversation_id'] );
+ok( false !== strpos( $r3->get_data()['answer'], 'پست پیشتاز' ), 'a new topic stands alone', $r3->get_data() );
+
 // Attributes and category descriptions.
 $attr = new WC_Product_Attribute();
 $attr->set_name( 'Material' );

@@ -1,0 +1,74 @@
+# Website Intelligence Agent, Self-Hosted edition.
+#   cp .env.example .env && docker compose up -d
+# Then open http://127.0.0.1:8000 (see docs/installation/self-hosted.md for HTTPS on a public domain).
+#
+# Profiles:
+#   https   Caddy with automatic certificates (set WIA_DOMAIN)
+#   gpu     GPU access for Ollama (NVIDIA)
+name: wia
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: wia
+      POSTGRES_USER: wia
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes: [db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U wia -d wia]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    restart: unless-stopped
+    volumes: [qdrant_data:/qdrant/storage]
+
+  ollama:
+    image: ollama/ollama:0.5.7
+    restart: unless-stopped
+    volumes: [ollama_data:/root/.ollama]
+
+  api:
+    build: { context: ., dockerfile: deployment/docker/Dockerfile }
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    env_file: .env
+    environment: &engine_env
+      WIA_DATABASE_URL: postgresql://wia:${POSTGRES_PASSWORD}@db:5432/wia
+      WIA_QDRANT_URL: http://qdrant:6333
+      WIA_LLM_URL: http://ollama:11434
+      WIA_EMBED_URL: http://ollama:11434
+    ports: ["${WIA_BIND:-127.0.0.1}:${WIA_PORT:-8000}:8000"]
+
+  worker:
+    build: { context: ., dockerfile: deployment/docker/Dockerfile }
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }  # the API creates the schema on first start
+    env_file: .env
+    environment: *engine_env
+    command: [python, -m, backend.workers.worker]
+    healthcheck: { disable: true }
+
+  caddy:
+    profiles: [https]
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [api]
+    ports: ["80:80", "443:443"]
+    environment:
+      WIA_DOMAIN: ${WIA_DOMAIN:-}
+    volumes:
+      - ./deployment/self-hosted/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+
+volumes:
+  db_data: {}
+  qdrant_data: {}
+  ollama_data: {}
+  caddy_data: {}

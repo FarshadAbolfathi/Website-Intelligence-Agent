@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from core.text.normalize import numbers_in, sentences, tokenize
 
 _CITATION = re.compile(r"\[\s*\d+\s*\]")
-_PRODUCT_FACT_INTENT_WORDS = ("price", "قیمت", "سعر")
+_SPACE_BEFORE_MARK = re.compile(r"[ \t]+([.,،؛:!?؟])")
 
 
 @dataclass
@@ -25,7 +25,7 @@ class Verification:
 
 
 def strip_citations(text: str) -> str:
-    return _CITATION.sub("", text)
+    return _SPACE_BEFORE_MARK.sub(r"\1", _CITATION.sub("", text)).strip()
 
 
 def verify_answer(answer: str, sources: list[str], *, min_sentence_support: float = 0.5) -> Verification:

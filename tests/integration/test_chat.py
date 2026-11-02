@@ -156,6 +156,18 @@ def test_multi_turn_followup_uses_subject_from_context(world):
     assert "۵۰" in third.text
 
 
+def test_new_question_with_its_own_subject_does_not_inherit_the_previous_one(world):
+    engine = bot(world)
+    first = engine.answer(world["ids"]["fa"], "قیمت گوشی ایکس چقدر است؟")
+    history = [ChatTurn("user", "قیمت گوشی ایکس چقدر است؟"), ChatTurn("assistant", first.text)]
+    for question, expected in [("شرایط ارسال چیست؟", "پست پیشتاز"), ("چطور سفارش ثبت کنم؟", "سبد خرید")]:
+        answer = engine.answer(world["ids"]["fa"], question, history=history, context_doc_id=first.context_doc_id)
+        assert expected in answer.text, (question, answer.text)
+    en = engine.answer(world["ids"]["en"], "How much is Headphones B?")
+    answer = engine.answer(world["ids"]["en"], "What is your return policy for a refund?", history=[ChatTurn("user", "How much is Headphones B?")], context_doc_id=en.context_doc_id)
+    assert "30 days" in answer.text
+
+
 def test_english_followup(world):
     engine = bot(world)
     first = engine.answer(world["ids"]["en"], "How much is Headphones B?")
@@ -270,6 +282,25 @@ def test_chat_engine_cannot_search_competitor_corpus(world):
     same_named = engine.answer(site_id, "How much is Laptop A?")
     assert "999" in same_named.text and "899" not in same_named.text
     assert not any(site.url in s.url for s in same_named.sources)
+
+
+def test_persian_dates_use_the_persian_calendar():
+    from datetime import datetime
+
+    from core.chat.engine import fmt_date, to_jalali
+
+    assert to_jalali(2026, 11, 2) == (1405, 8, 11)
+    assert to_jalali(2024, 3, 20) == (1403, 1, 1)
+    assert to_jalali(2025, 3, 21) == (1404, 1, 1)
+    assert fmt_date(datetime(2026, 11, 2), "fa") == "۱۴۰۵/۰۸/۱۱"
+    assert fmt_date(datetime(2026, 11, 2), "en") == "2026-11-02"
+
+
+def test_citation_markers_leave_clean_text():
+    from core.chat.verify import strip_citations
+
+    assert strip_citations("Items ship in 5 days [1].") == "Items ship in 5 days."
+    assert strip_citations("گارانتی ۱۸ ماه است [2] .") == "گارانتی ۱۸ ماه است."
 
 
 def test_verifier_reads_digits_across_scripts():

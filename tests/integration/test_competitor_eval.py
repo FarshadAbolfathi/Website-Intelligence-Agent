@@ -102,6 +102,7 @@ def test_evaluation_produces_real_metrics(setup, sites, lang):
     assert m["groundedness"] == 1.0, [i for i in result["items"] if i["grounded"] is False]
     assert m["unsupported_claims"] == 0
     assert m["language_quality"] >= 0.9, [(i["question"], i["answer"]) for i in result["items"] if not i["language_ok"]]
+    assert m["answered_rate"] >= 0.9, [(i["question"], i["why"]) for i in result["items"] if i["mode"] == "not_found" and i["kind"] != "out_of_scope"]
     assert m["latency_p95_ms"] >= 0 and m["source_coverage"] > 0.5
 
 
