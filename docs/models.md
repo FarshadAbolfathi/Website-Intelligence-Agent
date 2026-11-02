@@ -36,7 +36,7 @@ The language ratings shown in the dashboard are general expectations, **not meas
 | Language check | 1.0 | 1.0 | 1.0 |
 | Out-of-scope correctly declined | 1.0 | 1.0 | 1.0 |
 
-The run also found a real defect: in English, half of the questions of the form "Tell me about X" were wrongly declined. This has been fixed, and that run's figures predate the fix.
+The run also found a real defect: in English, half of the questions of the form "Tell me about X" were wrongly declined. After the fix, a repeat English run passed all 11 of its questions and answered all of those in scope. The Persian and Arabic figures above predate the fix.
 
 Sample answers from that run:
 
