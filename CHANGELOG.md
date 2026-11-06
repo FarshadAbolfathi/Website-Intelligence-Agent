@@ -2,10 +2,34 @@
 
 ## 0.2.0 (unreleased)
 
+### Widget (both editions)
+
+- Redesigned: an assistant icon, a header with status, a restart button, source links as tags, a send button, and a full-screen panel with no background scrolling on phones
+- Three animated dots while an answer is on its way, with a short pause scaled to the answer's length
+- An optional message above the chat button a few seconds after the page loads, once per visit, with its own text and delay
+- Common questions as buttons under the welcome message. Lite offers only those the site really answers
+- Yekan Bakh first in the font stack when the site loads it, or from a font file the owner supplies; the font is not bundled because it is commercial
+- Faster: only the launcher exists at page load, the panel and font are created on first open, and the script starts when the browser is idle. Lite prints its settings into the page, so no request is made until the first message
+
+### On and off
+
+- Lite: a switch at the top of the Status tab
+- Self-Hosted: a switch at the top of each site's page. When off, the public chat API refuses messages too
+
+### Conversation quality (both editions)
+
+- Synonym groups (گارانتی = ضمانت, مرجوعی = عودت, قسطی = اقساطی, ship = ارسال and more)
+- Colloquial and possessive endings («روزه», «سفارشم», «آدرستون»); for unknown words also a trailing «ی» and the start of a longer word («کوه» -> «کوهنوردی»)
+- Colloquial verbs («میفرستین», «بدم», «میاد») no longer block an answer
+- Price questions rank pages that state prices first
+- Lite: a question that misses one word now quotes the closest passage and says which word was not found; a follow-up that names its own subject keeps it; contact questions quote the contact page when it holds the detail asked for
+- Measured on two test businesses: a shop, 37 of 37 core questions and 5 of 7 hard ones; a language school whose questions were not used for tuning, 20 of 21
+
 ### Fixed
 
 - «کیف» (bag), «قد» (height) and «هل» (cardamom) were dropped as stopwords, because after normalisation they are the same strings as Arabic question words. A question such as «کیف» had no subject at all. They are now ordinary words, and count as question words only in Arabic questions. Both editions.
 - A question with a word the site does not know could borrow the previous message's subject and get that subject's answer. Both editions.
+- A question word such as «میرسه» could be "corrected" into a subject word such as «مدرسه». Both editions.
 
 ### Lite edition (WordPress)
 

@@ -116,6 +116,66 @@ class WIA_Text {
 		return self::$soft;
 	}
 
+	private static $synonyms = null;
+
+	/** @return string[] the token and every word that means the same (shared/language.json synonyms) */
+	public static function synonyms_of( $token ) {
+		if ( null === self::$synonyms ) {
+			self::$synonyms = array();
+			foreach ( self::data()['synonyms']['groups'] as $group ) {
+				$stems = array();
+				foreach ( $group as $w ) {
+					$stems[] = self::stem( self::normalize( $w ) );
+				}
+				foreach ( $stems as $s ) {
+					self::$synonyms[ $s ] = array_values( array_unique( array_merge( isset( self::$synonyms[ $s ] ) ? self::$synonyms[ $s ] : array(), $stems ) ) );
+				}
+			}
+		}
+		return isset( self::$synonyms[ $token ] ) ? self::$synonyms[ $token ] : array( $token );
+	}
+
+	/**
+	 * «سفارشم» -> «سفارش»: forms without a colloquial or possessive ending, longest ending first. $unknown adds the
+	 * endings tried only for words the site does not contain («تولیدی» -> «تولید»).
+	 */
+	public static function suffix_variants( $token, $unknown = false ) {
+		if ( preg_match( '/^[a-z0-9.+\-]+$/', $token ) ) {
+			return array();
+		}
+		$v   = self::data()['word_variants'];
+		$out = array();
+		foreach ( $unknown ? array_merge( $v['suffixes'], $v['unknown_only_suffixes'] ) : $v['suffixes'] as $s ) {
+			if ( self::ends( $token, $s ) && self::len( $token ) - self::len( $s ) >= $v['min_rest'] ) {
+				$out[] = substr( $token, 0, -strlen( $s ) );
+			}
+		}
+		return $out;
+	}
+
+	/** @return string[] indexed words that count as this question word: synonyms and forms without a colloquial ending */
+	public static function match_group( $token ) {
+		$out = self::synonyms_of( $token );
+		foreach ( self::suffix_variants( $token ) as $variant ) {
+			$out = array_merge( $out, self::synonyms_of( $variant ) );
+		}
+		return array_values( array_unique( $out ) );
+	}
+
+	/** «میاد», «نمیشه»: a verb the site does not contain says nothing about the subject. */
+	public static function looks_like_verb( $token ) {
+		$v = self::data()['word_variants'];
+		if ( preg_match( '/^[a-z0-9.+\-]+$/', $token ) || self::len( $token ) < 3 || self::len( $token ) > $v['verb_max'] ) {
+			return false;
+		}
+		foreach ( $v['verb_prefixes'] as $p ) {
+			if ( self::starts( $token, $p ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** @return string[] the words of a question that name its subject */
 	public static function subject_tokens( $text ) {
 		$soft = self::soft_stems( $text );

@@ -54,7 +54,7 @@ Errors: `404` unknown site key, `403` origin not allowed or assistant disabled, 
 
 ### `GET {base}/widget?site_key=KEY`
 
-Returns display settings: `title`, `welcome`, `not_found`, `color`, `position`, `language`, `avatar_url`, `show_sources`, `enabled`, and `starters`, a list of suggested first questions.
+Returns display settings: `title`, `welcome`, `not_found`, `color`, `position`, `language`, `avatar_url`, `show_sources`, `enabled`, `starters` (a list of suggested first questions), `teaser` (the message above the chat button, per language), `teaser_delay` (seconds, `0` = off) and `font_url` (an https font file, or empty). The WordPress edition also prints this object into each page, so its widget does not request it.
 
 ## Admin API (Self-Hosted)
 

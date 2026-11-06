@@ -208,5 +208,49 @@
       ],
       "why": "price and question words are soft"
     }
+  ],
+  "synonyms": [
+    {
+      "a": "گارانتی",
+      "b": "ضمانت",
+      "why": "warranty words"
+    },
+    {
+      "a": "اقساطی",
+      "b": "قسطی",
+      "why": "instalments"
+    },
+    {
+      "a": "shipping",
+      "b": "ارسال",
+      "why": "across languages"
+    },
+    {
+      "a": "مرجوعی",
+      "b": "عودت",
+      "why": "returns"
+    },
+    {
+      "a": "روزه",
+      "b": "روز",
+      "why": "colloquial «روزه» = «روز است»"
+    },
+    {
+      "a": "مدارس",
+      "b": "مدرسه",
+      "why": "Arabic broken plural used in Persian"
+    }
+  ],
+  "not_synonyms": [
+    {
+      "a": "کیف",
+      "b": "پول",
+      "why": "«کیف پول» is a product, not payment"
+    },
+    {
+      "a": "پشتی",
+      "b": "پشت",
+      "why": "a trailing «ی» is removed only from unknown words"
+    }
   ]
 }

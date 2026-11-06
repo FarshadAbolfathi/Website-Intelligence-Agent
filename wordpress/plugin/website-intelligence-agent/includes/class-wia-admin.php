@@ -19,6 +19,7 @@ class WIA_Admin {
 		add_action( 'wp_ajax_wia_ref_step', array( __CLASS__, 'ref_step' ) );
 		add_action( 'admin_post_wia_learning', array( __CLASS__, 'learning_action' ) );
 		add_action( 'admin_post_wia_graph', array( __CLASS__, 'graph_action' ) );
+		add_action( 'admin_post_wia_toggle', array( __CLASS__, 'toggle_action' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 	}
 
@@ -90,6 +91,11 @@ class WIA_Admin {
 		$scan     = WIA_Ingest::scan_state();
 		$docs     = isset( $stats['documents']['active'] ) ? $stats['documents']['active'] : 0;
 		$settings = WIA_DB::settings();
+		$on       = ! empty( $settings['enabled'] );
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="wia-card wia-switch ' . ( $on ? 'is-on' : 'is-off' ) . '"><input type="hidden" name="action" value="wia_toggle"><input type="hidden" name="enabled" value="' . ( $on ? '0' : '1' ) . '">';
+		wp_nonce_field( 'wia_toggle' );
+		echo '<div><b>' . esc_html( $on ? __( 'The assistant is on', 'website-intelligence-agent' ) : __( 'The assistant is off', 'website-intelligence-agent' ) ) . '</b><span>' . esc_html( $on ? __( 'Visitors see the chat button on every page.', 'website-intelligence-agent' ) : __( 'Visitors do not see it, and its public API refuses messages. Learning continues in the background.', 'website-intelligence-agent' ) ) . '</span></div>';
+		echo '<button class="button ' . ( $on ? '' : 'button-primary' ) . '" role="switch" aria-checked="' . ( $on ? 'true' : 'false' ) . '">' . esc_html( $on ? __( 'Turn off', 'website-intelligence-agent' ) : __( 'Turn on', 'website-intelligence-agent' ) ) . '</button></form>';
 		echo '<div class="notice notice-info inline"><p>' . esc_html__( 'Lite edition: the assistant finds and quotes your site\'s own text and reads prices and stock live from WooCommerce. It does not run a language model and does not write new sentences. Nothing is sent to any outside service.', 'website-intelligence-agent' ) . '</p></div>';
 		echo '<div class="wia-stats">';
 		foreach ( array(
@@ -213,7 +219,12 @@ class WIA_Admin {
 		self::lang_inputs( 'welcome', $s['welcome'], 2 );
 		echo '<h2>' . esc_html__( 'Message when no answer is found', 'website-intelligence-agent' ) . '</h2>';
 		self::lang_inputs( 'not_found', $s['not_found'], 2 );
-		echo '<h2>' . esc_html__( 'Suggested questions', 'website-intelligence-agent' ) . '</h2><p class="description">' . esc_html__( 'Shown as buttons under the welcome message, one per line. Leave empty to suggest your main categories.', 'website-intelligence-agent' ) . '</p>';
+		echo '<h2>' . esc_html__( 'Message above the chat button', 'website-intelligence-agent' ) . '</h2><p class="description">' . esc_html__( 'A short invitation that appears above the button a few seconds after the page loads, once per visit. Leave empty for the default text.', 'website-intelligence-agent' ) . '</p>';
+		self::lang_inputs( 'teaser', $s['teaser'] );
+		printf( '<p><label>%s <input type="number" min="0" max="120" name="teaser_delay" value="%d" class="small-text"></label> <span class="description">%s</span></p>', esc_html__( 'Show it after this many seconds', 'website-intelligence-agent' ), (int) $s['teaser_delay'], esc_html__( '0 turns the message off.', 'website-intelligence-agent' ) );
+		echo '<h2>' . esc_html__( 'Font', 'website-intelligence-agent' ) . '</h2><p class="description">' . esc_html__( 'The widget uses Yekan Bakh when your theme already loads it, then Vazirmatn, then the system font. Yekan Bakh is a commercial font and is not included in this plugin; if you hold a licence, upload its WOFF2 file and enter its address here.', 'website-intelligence-agent' ) . '</p>';
+		printf( '<p><label>%s<br><input type="url" class="regular-text" name="font_url" value="%s" dir="ltr" placeholder="https://example.com/fonts/YekanBakh-Regular.woff2"></label></p>', esc_html__( 'Yekan Bakh font file (https, optional)', 'website-intelligence-agent' ), esc_attr( $s['font_url'] ) );
+		echo '<h2>' . esc_html__( 'Suggested questions', 'website-intelligence-agent' ) . '</h2><p class="description">' . esc_html__( 'Shown as buttons under the welcome message, one per line. Leave empty to offer common questions your site really answers, such as shipping or payment, and your main categories.', 'website-intelligence-agent' ) . '</p>';
 		self::lang_inputs( 'starters', $s['starters'], 3 );
 		$c = $s['contact'];
 		echo '<h2>' . esc_html__( 'Contact and handoff', 'website-intelligence-agent' ) . '</h2><p class="description">' . esc_html__( 'When a visitor asks how to reach you, or the assistant misses twice in a row, it offers these. Leave all empty to link your contact page, if the site has one.', 'website-intelligence-agent' ) . '</p>';
@@ -322,6 +333,10 @@ class WIA_Admin {
 			$s['welcome']      = self::clean_langs( 'welcome' );
 			$s['not_found']    = self::clean_langs( 'not_found' );
 			$s['starters']     = self::clean_langs( 'starters' );
+			$s['teaser']       = self::clean_langs( 'teaser' );
+			$s['teaser_delay'] = max( 0, min( 120, absint( isset( $_POST['teaser_delay'] ) ? $_POST['teaser_delay'] : 4 ) ) );
+			$s['font_url']     = isset( $_POST['font_url'] ) ? esc_url_raw( wp_unslash( $_POST['font_url'] ), array( 'https' ) ) : '';
+			WIA_Chat::forget_starters();
 			$raw               = isset( $_POST['contact'] ) && is_array( $_POST['contact'] ) ? wp_unslash( $_POST['contact'] ) : array(); // phpcs:ignore WordPress.Security
 			$g                 = function ( $k ) use ( $raw ) { return isset( $raw[ $k ] ) ? trim( (string) $raw[ $k ] ) : ''; };
 			$s['contact']      = array(
@@ -604,6 +619,15 @@ class WIA_Admin {
 			WIA_Reference::requeue( isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0 );
 		}
 		wp_safe_redirect( self::url( 'learning', array( 'saved' => 1 ) ) );
+		exit;
+	}
+
+	public static function toggle_action() {
+		self::require_admin( 'wia_toggle' );
+		$s            = WIA_DB::settings();
+		$s['enabled'] = empty( $_POST['enabled'] ) ? 0 : 1;
+		update_option( 'wia_settings', $s, false );
+		wp_safe_redirect( self::url( 'status', array( 'saved' => 1 ) ) );
 		exit;
 	}
 

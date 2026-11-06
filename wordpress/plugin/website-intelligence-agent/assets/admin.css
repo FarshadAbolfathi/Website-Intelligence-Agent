@@ -27,3 +27,6 @@
 .wia .wia-chips{display:flex;flex-wrap:wrap;gap:6px}
 .wia .wia-chip{display:inline-block;border:1px solid #2271b1;border-radius:14px;padding:2px 10px;text-decoration:none;color:#2271b1;background:#fff}
 .wia .wia-stat small{display:block;color:#646970;margin-top:2px}
+.wia .wia-switch{display:flex;align-items:center;justify-content:space-between;gap:16px;border-inline-start:4px solid #00a32a}
+.wia .wia-switch.is-off{border-inline-start-color:#d63638;background:#fcf0f1}
+.wia .wia-switch b{display:block;font-size:15px}.wia .wia-switch span{color:#50575e}

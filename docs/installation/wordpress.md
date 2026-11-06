@@ -12,7 +12,20 @@ Requirements: WordPress 6.0 or newer, PHP 7.4 or newer, MySQL or MariaDB with In
 
 To open the chat from your own button or link, add the class `js-wia-open` to it.
 
-8. Under **Chat widget → Contact and handoff**, enter how visitors can reach you. Without this, the assistant links your contact page if it finds one.
+8. Under **Chat widget**, set the message shown above the chat button, the suggested questions and the font.
+9. Under **Chat widget → Contact and handoff**, enter how visitors can reach you. Without this, the assistant links your contact page if it finds one.
+
+## Turning it off
+
+The switch at the top of the **Status** tab hides the widget from every page and makes the public chat endpoint refuse messages. Learning continues, so turning it back on is instant.
+
+## Font
+
+The widget uses Yekan Bakh when your theme already loads it, then Vazirmatn, then the system font. Yekan Bakh is a commercial font, so it is not included. If you hold a licence, upload its WOFF2 file (for example through your theme or FTP, since WordPress does not accept font uploads by default) and enter its https address under **Chat widget → Font**. It is loaded only when a visitor opens the chat.
+
+## Speed
+
+At page load the widget adds one deferred script of about 9 KB compressed and a single button. The chat panel and any font are created when a visitor opens it. Settings are printed into the page, so nothing is requested from your server until the first message. With page caching, settings changes appear after the cache is cleared.
 
 ## How it talks with visitors
 

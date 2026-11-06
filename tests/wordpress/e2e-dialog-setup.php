@@ -18,6 +18,8 @@ page( 'تولید کوله پشتی در تهران', '<p>تولیدی کوله 
 page( 'شرایط ارسال', '<p>ارسال سفارش به سراسر کشور با پست پیشتاز بین ۲ تا ۴ روز کاری انجام می‌شود.</p>' );
 $s             = WIA_DB::settings();
 $s['language'] = 'fa';
+$s['teaser_delay'] = 1;
+$s['teaser'] = array( 'fa' => 'سلام 👋 دنبال کیف یا کوله هستید؟ بپرسید.' );
 $s['contact']  = array( 'phone' => '021-0000-0000', 'email' => 'support@example.test', 'whatsapp' => '+98 900 000 0000', 'telegram' => '', 'page' => '', 'hours' => '۹ تا ۱۷' );
 update_option( 'wia_settings', $s, false );
 run_scan();

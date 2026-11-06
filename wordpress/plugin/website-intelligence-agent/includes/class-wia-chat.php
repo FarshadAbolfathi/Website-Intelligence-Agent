@@ -64,6 +64,15 @@ class WIA_Chat {
 		}
 		if ( WIA_Text::intent( 'contact', $normalized ) ) {
 			$contact = self::contact( $lang );
+			// «آدرستون کجاست؟»: the contact page may hold the very detail asked for, so quote it with the buttons.
+			$hits = WIA_Knowledge::search( $question, 5, $cinfo );
+			if ( $hits && self::best_coverage( $hits ) >= WIA_Knowledge::MIN_COVERAGE && 'contact' === $hits[0]['content_type'] ) {
+				$answer = self::extractive( self::match_query( $question, $cinfo ), $hits, $lang );
+				if ( $contact ) {
+					$answer['actions'] = $contact['actions'];
+				}
+				return $answer;
+			}
 			if ( $contact ) {
 				return $contact;
 			}
@@ -95,6 +104,17 @@ class WIA_Chat {
 				$query = $expanded;
 				$hits  = $retry;
 				$info  = $retry_info;
+			}
+		}
+		// «گارانتی داره؟» after a product looks like a follow-up, but it names its own subject. When the question alone
+		// is answered confidently and the product page says nothing about that subject, the question stands alone.
+		if ( $query !== $question && $hits ) {
+			$alone = WIA_Knowledge::search( $question, 8, $alone_info );
+			$own   = $alone_info['subject'];
+			if ( self::best_coverage( $alone ) >= WIA_Knowledge::MIN_COVERAGE && $own && ! $alone_info['unknown'] && array_diff( $own, $hits[0]['matched'] ) ) {
+				$query = $question;
+				$hits  = $alone;
+				$info  = $alone_info;
 			}
 		}
 		// Each product holds only part of a comparison's words, so the gate would refuse it. Requiring two
@@ -132,9 +152,14 @@ class WIA_Chat {
 				return $choice;
 			}
 		}
-		$answer            = self::extractive( $query, $hits, $lang );
+		$answer            = self::extractive( self::match_query( $query, $info ), $hits, $lang );
 		$answer['learned'] = $learned;
 		return $answer;
+	}
+
+	/** The query plus the indexed words that matched it («آدرستون» -> «ادرس»), so the right sentence is quoted. */
+	private static function match_query( $query, $info ) {
+		return trim( $query . ' ' . implode( ' ', isset( $info['match'] ) ? (array) $info['match'] : array() ) );
 	}
 
 	/** Every reply has the same keys, so the REST layer and the widget never meet a missing one. */
@@ -217,18 +242,42 @@ class WIA_Chat {
 		return (bool) WIA_Text::subject_tokens( $rest );
 	}
 
-	/** Suggested first questions: the owner's own, otherwise the site's main categories. */
+	/**
+	 * Suggested first questions: the owner's own, otherwise common business questions this site really answers,
+	 * then its main categories. Cached until the next scan or settings change, because every page carries them.
+	 */
 	public static function starters( $lang ) {
+		$key    = 'wia_starters_' . $lang;
+		$cached = get_transient( $key );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
 		$settings = WIA_DB::settings();
 		$own      = isset( $settings['starters'][ $lang ] ) ? (string) $settings['starters'][ $lang ] : '';
 		$list     = array_values( array_filter( array_map( 'trim', explode( "\n", $own ) ), 'strlen' ) );
 		if ( ! $list ) {
-			$list = self::topics( 3 );
+			self::msg( $lang, 'greeting' );
+			$common = isset( self::$messages['common_questions'][ $lang ] ) ? self::$messages['common_questions'][ $lang ] : array();
+			foreach ( $common as $q ) {
+				// Offer only what gets a real answer: a button that leads to «not found» would be worse than none.
+				if ( count( $list ) < 4 && in_array( self::answer( $q )['mode'], array( 'faq', 'extractive', 'structured' ), true ) ) {
+					$list[] = $q;
+				}
+			}
+			$list = array_slice( array_values( array_unique( array_merge( $list, self::topics( 3 ) ) ) ), 0, 5 );
 		}
 		if ( self::has_contact() ) {
 			$list[] = self::msg( $lang, 'contact_chip' );
 		}
-		return array_slice( $list, 0, 4 );
+		$list = array_slice( $list, 0, 6 );
+		set_transient( $key, $list, 12 * HOUR_IN_SECONDS );
+		return $list;
+	}
+
+	public static function forget_starters() {
+		foreach ( array( 'fa', 'ar', 'en' ) as $l ) {
+			delete_transient( 'wia_starters_' . $l );
+		}
 	}
 
 	/** Main topics of this site: product categories, then post categories, then pages. */
@@ -287,6 +336,27 @@ class WIA_Chat {
 			}
 		}
 		$titles = array_values( array_unique( array_map( function ( $h ) { return wp_strip_all_tags( $h['title'] ); }, $related ) ) );
+		$first  = $related ? reset( $related ) : null;
+		$known_stems = array_values( array_diff( $info['subject'], $info['unknown'] ) );
+		// «به شیراز هم ارسال دارید؟»: the shipping page answers everything but «شیراز». Quote it, and say what
+		// was not found, rather than only listing links.
+		if ( $first && $unknown && $known_stems && count( $info['unknown'] ) < count( $info['subject'] ) && count( array_intersect( $known_stems, $first['matched'] ) ) >= 0.6 * count( $known_stems ) ) {
+			$quote = self::extractive( self::match_query( implode( ' ', $known_stems ), $info ), array( $first ), $lang );
+			$more  = array_values( array_diff( $titles, array( wp_strip_all_tags( $first['title'] ) ) ) );
+			return self::shape(
+				array(
+					'text'        => self::msg( $lang, 'partial_quote', array( 'missing' => self::join_words( $unknown, $lang ) ) ) . "\n" . $quote['text'],
+					'language'    => $lang,
+					'mode'        => 'partial',
+					'sources'     => $quote['sources'],
+					'context_doc' => (int) $first['doc_id'],
+					'suggestions' => $more,
+					'alts'        => $more,
+					'learn'       => array( 'words' => array_values( $info['unknown'] ), 'docs' => array_map( 'intval', array_keys( $related ) ) ),
+					'gaps'        => $unknown,
+				)
+			);
+		}
 		if ( $related && $unknown && $known ) {
 			$text = self::msg( $lang, 'partial', array( 'missing' => self::join_words( $unknown, $lang ), 'found' => self::join_words( $known, $lang ) ) );
 		} elseif ( $related ) {

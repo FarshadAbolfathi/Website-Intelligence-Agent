@@ -487,3 +487,45 @@ msgstr "%s مورد دیگر در انتظار رأی"
 
 msgid "%s pages"
 msgstr "%s صفحه"
+
+msgid "0 turns the message off."
+msgstr "عدد ۰ این پیام را خاموش می‌کند."
+
+msgid "A short invitation that appears above the button a few seconds after the page loads, once per visit. Leave empty for the default text."
+msgstr "یک دعوت کوتاه که چند ثانیه پس از باز شدن صفحه، در هر بازدید یک بار، بالای دکمه نمایش داده می‌شود. اگر خالی بماند، متن پیش‌فرض نشان داده می‌شود."
+
+msgid "Font"
+msgstr "فونت"
+
+msgid "Message above the chat button"
+msgstr "پیام بالای دکمه گفتگو"
+
+msgid "Show it after this many seconds"
+msgstr "نمایش پس از این تعداد ثانیه"
+
+msgid "Shown as buttons under the welcome message, one per line. Leave empty to offer common questions your site really answers, such as shipping or payment, and your main categories."
+msgstr "به‌صورت دکمه زیر پیام خوش‌آمد نمایش داده می‌شوند، هر کدام در یک خط. اگر خالی بماند، سؤال‌های پرتکراری که سایت شما واقعاً جوابشان را دارد (مثل ارسال یا پرداخت) و دسته‌های اصلی پیشنهاد می‌شوند."
+
+msgid "The assistant is off"
+msgstr "دستیار خاموش است"
+
+msgid "The assistant is on"
+msgstr "دستیار روشن است"
+
+msgid "The widget uses Yekan Bakh when your theme already loads it, then Vazirmatn, then the system font. Yekan Bakh is a commercial font and is not included in this plugin; if you hold a licence, upload its WOFF2 file and enter its address here."
+msgstr "اگر قالب سایت شما فونت یکان بخ را بارگذاری کند، ویجت از همان استفاده می‌کند؛ وگرنه وزیرمتن و سپس فونت سیستم. یکان بخ فونت تجاری است و همراه این افزونه نیست؛ اگر مجوز آن را دارید، فایل WOFF2 آن را بارگذاری کنید و نشانی‌اش را اینجا وارد کنید."
+
+msgid "Turn off"
+msgstr "خاموش کردن"
+
+msgid "Turn on"
+msgstr "روشن کردن"
+
+msgid "Visitors do not see it, and its public API refuses messages. Learning continues in the background."
+msgstr "بازدیدکنندگان آن را نمی‌بینند و پیام‌ها پذیرفته نمی‌شود. یادگیری در پس‌زمینه ادامه دارد."
+
+msgid "Visitors see the chat button on every page."
+msgstr "بازدیدکنندگان دکمه گفتگو را در همه صفحات می‌بینند."
+
+msgid "Yekan Bakh font file (https, optional)"
+msgstr "فایل فونت یکان بخ (https، اختیاری)"

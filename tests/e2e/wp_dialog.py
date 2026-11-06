@@ -27,6 +27,10 @@ def check(name: str, ok: bool, detail: object = "") -> None:
 def ask(page, text: str, count: int) -> str:
     page.locator("#wia-widget >> textarea").fill(text)
     page.locator("#wia-widget >> .send").click()
+    dots = page.locator("#wia-widget >> .dots i").count()
+    if dots != 3:
+        failures.append(f"typing dots missing for {text}")
+        print(f"FAIL three animated dots while answering: {dots}")
     page.wait_for_function(f"document.querySelector('#wia-widget').shadowRoot.querySelectorAll('.m.bot:not(.typing)').length >= {count}", timeout=20000)
     return page.locator(BOT).last.inner_text()
 
@@ -40,13 +44,26 @@ with sync_playwright() as p:
     errors: list[str] = []
 
     for name, viewport in (("desktop", {"width": 1280, "height": 860}), ("mobile", {"width": 390, "height": 844})):
-        ctx = browser.new_context(viewport=viewport, locale="fa-IR")
+        ctx = browser.new_context(viewport=viewport, locale="fa-IR", is_mobile=name == "mobile", has_touch=name == "mobile")
         front = ctx.new_page()
         front.on("pageerror", lambda e: errors.append(str(e)))
+        calls: list[str] = []
+        front.on("request", lambda r: calls.append(r.url) if "wia/v1" in r.url else None)
         front.goto(f"{base}/")
         front.wait_for_selector("#wia-widget", state="attached", timeout=15000)
+        built = front.evaluate("!!document.querySelector('#wia-widget').shadowRoot.querySelector('.panel')")
+        check(f"{name}: only the launcher exists before opening, and no request was made", not built and not calls, (built, calls))
+        front.wait_for_selector("#wia-widget >> .teaser.show", timeout=8000)
+        teaser = front.locator("#wia-widget >> .teaser").inner_text()
+        check(f"{name}: the teaser message appears above the button", "کیف یا کوله" in teaser, teaser)
+        front.wait_for_timeout(400)
+        front.screenshot(path=out / f"wp-teaser-{name}.png")
         front.locator("#wia-widget >> .fab").click()
-        front.wait_for_timeout(300)
+        front.wait_for_timeout(350)
+        check(f"{name}: opening hides the teaser", front.locator("#wia-widget >> .teaser").count() == 0)
+        font = front.evaluate("getComputedStyle(document.querySelector('#wia-widget').shadowRoot.querySelector('.m')).fontFamily")
+        check(f"{name}: Yekan Bakh comes first in the font stack", font.startswith('"Yekan Bakh"'), font)
+        front.screenshot(path=out / f"wp-welcome-{name}.png")
         starters = chips(front)
         check(f"{name}: welcome shows starter buttons", "کوله پشتی" in starters and "ارتباط با پشتیبانی" in starters, starters)
         answer = ask(front, "کیف", 2)
@@ -64,6 +81,9 @@ with sync_playwright() as p:
         answer = ask(front, "زیردریایی", 6)
         links = [a.get_attribute("href") for a in front.locator("#wia-widget >> .m.bot:not(.typing) .act").all()]
         check(f"{name}: two misses hand off with contact buttons", "021-0000-0000" in answer and "tel:02100000000" in links and "https://wa.me/989000000000" in links, (answer, links))
+        if name == "mobile":
+            box = front.evaluate("(() => { const r = document.querySelector('#wia-widget').shadowRoot.querySelector('.panel').getBoundingClientRect(); return [r.width, r.height, document.documentElement.style.overflow]; })()")
+            check("mobile: the panel fills the screen and the page behind it does not scroll", box[0] == viewport["width"] and box[1] >= viewport["height"] - 1 and box[2] == "hidden", box)
         width = front.evaluate("document.querySelector('#wia-widget').shadowRoot.querySelector('.panel').getBoundingClientRect().width")
         check(f"{name}: panel fits the screen", width <= viewport["width"], width)
         front.screenshot(path=out / f"wp-dialog-handoff-{name}.png")
@@ -102,6 +122,20 @@ with sync_playwright() as p:
     body = page.inner_text("#wpbody")
     check("learning tab shows the learned phrase and the reference site", "ساک" in body and "ref:8080" in body and "فعال" in body, body[:400])
     page.screenshot(path=out / "wp-learning.png", full_page=True)
+    # The switch on the Status tab hides the widget from visitors.
+    page.goto(f"{base}/wp-admin/admin.php?page=website-intelligence-agent")
+    page.locator(".wia-switch button").click()
+    page.wait_for_load_state()
+    check("the Status tab says the assistant is off", "خاموش" in page.inner_text(".wia-switch"), page.inner_text(".wia-switch"))
+    page.screenshot(path=out / "wp-switch-off.png")
+    visitor = browser.new_context()
+    gone = visitor.new_page()
+    gone.goto(f"{base}/")
+    gone.wait_for_timeout(2500)
+    check("with the switch off, visitors get no widget", gone.locator("#wia-widget").count() == 0 and "wia-widget.js" not in gone.content())
+    page.locator(".wia-switch button").click()
+    page.wait_for_load_state()
+    check("and it can be turned on again", "روشن" in page.inner_text(".wia-switch"))
     check("no JavaScript errors", not errors, errors)
     browser.close()
 

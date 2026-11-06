@@ -246,6 +246,7 @@ function SiteDetail({ id, onBack }: { id: number; onBack: () => void }) {
         <h1 style={{ margin: 0, flex: 1 }}>{site.name} <small className="muted ltr">{site.base_url}</small></h1>
         <button onClick={remove}>{t.remove}</button>
       </div>
+      <AssistantSwitch site={site} reload={reload} />
       <nav className="tabs">{SITE_TABS.map((k) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{t[k]}</button>)}</nav>
       {tab === "crawl" && <CrawlTab site={site} reload={reload} />}
       {tab === "knowledge" && <KnowledgeTab id={id} />}
@@ -369,6 +370,19 @@ function TestTab({ id }: { id: number }) {
   );
 }
 
+/** The one control an owner needs most: whether visitors see the assistant at all. */
+function AssistantSwitch({ site, reload }: { site: any; reload: () => void }) {
+  const t = useT();
+  const on = site.settings?.widget?.enabled !== false;
+  const toggle = () => api(`/api/sites/${site.id}`, { method: "PATCH", body: { widget: { ...(site.settings?.widget ?? {}), enabled: !on } } }).then(reload);
+  return (
+    <div className={`card switch ${on ? "is-on" : "is-off"}`}>
+      <b>{on ? t.assistantOn : t.assistantOff}</b>
+      <button role="switch" aria-checked={on} className={on ? "" : "primary"} onClick={toggle}>{on ? t.turnOff : t.turnOn}</button>
+    </div>
+  );
+}
+
 function WidgetTab({ site, reload }: { site: any; reload: () => void }) {
   const t = useT();
   const [w, setW] = useState<any>(site.settings?.widget ?? {});
@@ -398,6 +412,18 @@ function WidgetTab({ site, reload }: { site: any; reload: () => void }) {
         {langText("title", t.title)}
         {langText("welcome", t.welcome)}
         {langText("not_found", t.notFound)}
+        {langText("teaser", t.teaser)}
+        <label>{t.teaserDelay}<input type="number" min={0} max={120} value={w.teaser_delay ?? 4} onChange={(e) => setW({ ...w, teaser_delay: Number(e.target.value) })} /></label>
+        <fieldset style={{ border: 0, padding: 0, margin: "10px 0" }}>
+          <legend><b>{t.starters}</b></legend>
+          <div className="row">
+            {["fa", "ar", "en"].map((l) => (
+              <label key={l}>{l}<textarea dir="auto" rows={3} value={w.starters?.[l] ?? ""} onChange={(e) => setW({ ...w, starters: { ...(w.starters ?? {}), [l]: e.target.value } })} /></label>
+            ))}
+          </div>
+        </fieldset>
+        <label>{t.fontUrl}<input className="ltr" value={w.font_url ?? ""} onChange={(e) => setW({ ...w, font_url: e.target.value })} /></label>
+        <p className="muted">{t.fontHelp}</p>
         <button className="primary" onClick={() => api(`/api/sites/${site.id}`, { method: "PATCH", body: { widget: w } }).then(reload)}>{t.save}</button>
       </div>
       <div className="card"><h2>{t.embed}</h2><pre>{snippet}</pre></div>

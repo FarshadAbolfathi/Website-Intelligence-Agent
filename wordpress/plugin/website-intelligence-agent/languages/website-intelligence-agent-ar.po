@@ -487,3 +487,45 @@ msgstr "%s أخرى بانتظار الأصوات"
 
 msgid "%s pages"
 msgstr "%s صفحات"
+
+msgid "0 turns the message off."
+msgstr "القيمة 0 توقف الرسالة."
+
+msgid "A short invitation that appears above the button a few seconds after the page loads, once per visit. Leave empty for the default text."
+msgstr "دعوة قصيرة تظهر فوق الزر بعد ثوانٍ من تحميل الصفحة، مرة في كل زيارة. اتركها فارغة للنص الافتراضي."
+
+msgid "Font"
+msgstr "الخط"
+
+msgid "Message above the chat button"
+msgstr "رسالة فوق زر المحادثة"
+
+msgid "Show it after this many seconds"
+msgstr "إظهارها بعد هذا العدد من الثواني"
+
+msgid "Shown as buttons under the welcome message, one per line. Leave empty to offer common questions your site really answers, such as shipping or payment, and your main categories."
+msgstr "تظهر كأزرار تحت رسالة الترحيب، كل واحد في سطر. اتركها فارغة لاقتراح الأسئلة الشائعة التي يجيب عنها موقعك فعلا، مثل الشحن أو الدفع، وفئاتك الرئيسية."
+
+msgid "The assistant is off"
+msgstr "المساعد متوقف"
+
+msgid "The assistant is on"
+msgstr "المساعد يعمل"
+
+msgid "The widget uses Yekan Bakh when your theme already loads it, then Vazirmatn, then the system font. Yekan Bakh is a commercial font and is not included in this plugin; if you hold a licence, upload its WOFF2 file and enter its address here."
+msgstr "يستخدم الشريط خط Yekan Bakh إذا كان قالبك يحمّله، ثم Vazirmatn، ثم خط النظام. Yekan Bakh خط تجاري وغير مضمّن في هذه الإضافة؛ إذا كان لديك ترخيص فارفع ملف WOFF2 وأدخل عنوانه هنا."
+
+msgid "Turn off"
+msgstr "إيقاف"
+
+msgid "Turn on"
+msgstr "تشغيل"
+
+msgid "Visitors do not see it, and its public API refuses messages. Learning continues in the background."
+msgstr "لا يراه الزوار ولا تُقبل الرسائل. يستمر التعلم في الخلفية."
+
+msgid "Visitors see the chat button on every page."
+msgstr "يرى الزوار زر المحادثة في كل الصفحات."
+
+msgid "Yekan Bakh font file (https, optional)"
+msgstr "ملف خط Yekan Bakh (https، اختياري)"

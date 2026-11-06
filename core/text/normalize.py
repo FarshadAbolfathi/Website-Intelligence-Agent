@@ -144,6 +144,43 @@ def soft_stems_for(text: str) -> frozenset[str]:
     return SOFT_STEMS | AR_FUNCTION_STEMS if detect_language(text, "fa") == "ar" else SOFT_STEMS
 
 
+_SYNONYMS: dict[str, frozenset[str]] = {}
+for _group in LANGUAGE["synonyms"]["groups"]:
+    _stems = frozenset(stem(normalize(w)) for w in _group)
+    for _s in _stems:
+        _SYNONYMS[_s] = _SYNONYMS.get(_s, frozenset()) | _stems
+
+
+def synonyms_of(token: str) -> frozenset[str]:
+    """The token and every word that means the same (shared/language.json synonyms)."""
+    return _SYNONYMS.get(token, frozenset((token,)))
+
+
+VARIANTS = LANGUAGE["word_variants"]
+
+
+def suffix_variants(token: str, unknown: bool = False) -> list[str]:
+    """«سفارشم» -> «سفارش»: forms without a colloquial or possessive ending, longest ending first. ``unknown`` adds
+    the endings tried only for words the site does not contain («تولیدی» -> «تولید»)."""
+    if _LATIN_OR_NUM.match(token):
+        return []
+    endings = VARIANTS["suffixes"] + (VARIANTS["unknown_only_suffixes"] if unknown else [])
+    return [token[: -len(s)] for s in endings if token.endswith(s) and len(token) - len(s) >= VARIANTS["min_rest"]]
+
+
+def match_group(token: str) -> frozenset[str]:
+    """Indexed words that count as this question word: its synonyms and its forms without a colloquial ending."""
+    out = set(synonyms_of(token))
+    for variant in suffix_variants(token):
+        out |= synonyms_of(variant)
+    return frozenset(out)
+
+
+def looks_like_verb(token: str) -> bool:
+    """«میاد», «نمیشه»: a verb the site does not contain says nothing about the subject."""
+    return not _LATIN_OR_NUM.match(token) and 3 <= len(token) <= VARIANTS["verb_max"] and any(token.startswith(p) for p in VARIANTS["verb_prefixes"])
+
+
 def subject_tokens(text: str) -> list[str]:
     """The words of a question that name its subject."""
     soft = soft_stems_for(text)

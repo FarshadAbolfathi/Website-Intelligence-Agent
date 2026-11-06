@@ -52,7 +52,7 @@ ok( in_array( $a['mode'], array( 'extractive', 'clarify' ), true ) && $a['sugges
 
 // ---- partial and empty misses explain themselves ---------------------------------------------------
 $a = WIA_Chat::answer( 'کوله پشتی ضدآب' );
-ok( 'not_found' === $a['mode'] && false !== strpos( $a['text'], 'ضدآب' ) && $a['suggestions'], 'partial miss names the unknown word and offers what exists', $a );
+ok( in_array( $a['mode'], array( 'not_found', 'partial' ), true ) && false !== strpos( $a['text'], 'ضدآب' ) && ( $a['suggestions'] || 'partial' === $a['mode'] ), 'partial miss names the unknown word and offers what exists', $a );
 $a = WIA_Chat::answer( 'هلیکوپتر' );
 ok( 'not_found' === $a['mode'] && false !== strpos( $a['text'], 'هلیکوپتر' ) && in_array( 'کوله پشتی', $a['suggestions'], true ), 'unknown topic says so and suggests the site\'s categories', $a );
 

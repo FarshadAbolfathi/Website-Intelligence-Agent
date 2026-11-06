@@ -147,6 +147,29 @@ class WIA_Knowledge {
 		return array( (int) $row->n, (float) $row->a ?: 1.0 );
 	}
 
+	/**
+	 * For a word this site does not contain: a typo fix toward a rare indexed word, else the word without a
+	 * colloquial ending («سفارشم»), else a longer indexed word it starts («کوه» -> «کوهنوردی»). '' if none.
+	 */
+	private static function known_variant( $term, $n ) {
+		global $wpdb;
+		$fixed = self::fix_typo( $term, $n );
+		if ( '' !== $fixed ) {
+			return $fixed;
+		}
+		foreach ( WIA_Text::suffix_variants( $term, true ) as $variant ) {
+			if ( self::document_frequency( array( $variant ) ) ) {
+				return $variant;
+			}
+		}
+		$v = WIA_Text::data()['word_variants'];
+		if ( mb_strlen( $term ) >= $v['prefix_min'] && ! ctype_digit( $term ) ) {
+			$len = mb_strlen( $term );
+			return (string) $wpdb->get_var( $wpdb->prepare( 'SELECT term FROM ' . WIA_DB::t( 'postings' ) . ' WHERE term LIKE %s AND CHAR_LENGTH(term) BETWEEN %d AND %d GROUP BY term ORDER BY COUNT(*) DESC, term LIMIT 1', $wpdb->esc_like( $term ) . '%', $len + $v['prefix_extra_min'], $len + $v['prefix_extra_max'] ) ); // phpcs:ignore WordPress.DB
+		}
+		return '';
+	}
+
 	private static function fix_typo( $term, $n ) {
 		global $wpdb;
 		$len = mb_strlen( $term );
@@ -187,6 +210,14 @@ class WIA_Knowledge {
 		global $wpdb;
 		$info  = array( 'subject' => array(), 'unknown' => array() );
 		$terms = WIA_Text::query_terms( $query );
+		// «هزینه دوره آیلتس چقدره؟»: the page that states prices should rank first. These words are soft, so
+		// their absence never blocks an answer.
+		if ( WIA_Text::intent( 'price', WIA_Text::normalize( $query ) ) ) {
+			foreach ( WIA_Text::data()['price_terms']['words'] as $w ) {
+				$terms[] = WIA_Text::stem( WIA_Text::normalize( $w ) );
+			}
+			$terms = array_values( array_unique( $terms ) );
+		}
 		if ( ! $terms ) {
 			return array();
 		}
@@ -194,12 +225,25 @@ class WIA_Knowledge {
 		if ( ! $n ) {
 			return array();
 		}
-		$df   = self::document_frequency( $terms );
-		$base = array_values( array_intersect( $terms, array_unique( WIA_Text::tokenize( $query ) ) ) );
+		$base   = array_values( array_intersect( $terms, array_unique( WIA_Text::tokenize( $query ) ) ) );
+		$expand = function () use ( &$terms, &$base ) {
+			$all = $terms;
+			foreach ( $base as $w ) {
+				$all = array_merge( $all, WIA_Text::match_group( $w ) );
+			}
+			return array_values( array_unique( $all ) );
+		};
+		// A word counts as present when any word of its synonym group is present.
+		$present = function ( $w ) use ( &$df ) {
+			return array_values( array_filter( WIA_Text::match_group( $w ), function ( $s ) use ( &$df ) { return isset( $df[ $s ] ); } ) );
+		};
+		$df      = self::document_frequency( $expand() );
 		$changed = false;
+		$soft    = WIA_Text::soft_stems( $query );
 		foreach ( $base as $i => $term ) {
-			if ( ! isset( $df[ $term ] ) ) {
-				$fixed = self::fix_typo( $term, $n );
+			// A question word such as «میرسه» is never "corrected" into a subject («مدرسه»).
+			if ( ! isset( $soft[ $term ] ) && ! $present( $term ) ) {
+				$fixed = self::known_variant( $term, $n );
 				if ( '' !== $fixed ) {
 					$terms[ array_search( $term, $terms, true ) ] = $fixed;
 					$base[ $i ] = $fixed;
@@ -209,12 +253,24 @@ class WIA_Knowledge {
 		}
 		if ( $changed ) {
 			$terms = array_values( array_unique( $terms ) );
-			$df    = self::document_frequency( $terms );
+			$df    = self::document_frequency( $expand() );
 		}
 		$soft    = WIA_Text::soft_stems( $query );
 		$subject = array_values( array_filter( $base, function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } ) );
 		$subject = $subject ? $subject : $base;
-		$info    = array( 'subject' => $subject, 'unknown' => array_values( array_filter( $subject, function ( $w ) use ( $df ) { return ! isset( $df[ $w ] ); } ) ) );
+		$groups  = array();
+		foreach ( $subject as $w ) {
+			$groups[ $w ] = $present( $w );
+		}
+		// An unknown verb («میاد») does not block a question that has another subject word.
+		$nouns = array_values( array_filter( $subject, function ( $w ) use ( $groups ) { return $groups[ $w ] || ! WIA_Text::looks_like_verb( $w ); } ) );
+		if ( $nouns && count( $nouns ) < count( $subject ) ) {
+			$subject = $nouns;
+			$groups  = array_intersect_key( $groups, array_flip( $nouns ) );
+		}
+		$info = array( 'subject' => $subject, 'unknown' => array_values( array_filter( $subject, function ( $w ) use ( $groups ) { return ! $groups[ $w ]; } ) ) );
+		// The words that really matched, synonyms included: used to pick which sentences to quote.
+		$info['match'] = array_values( array_unique( array_merge( $subject, $groups ? call_user_func_array( 'array_merge', array_values( $groups ) ) : array() ) ) );
 		if ( ! $df ) {
 			return array();
 		}
@@ -224,7 +280,11 @@ class WIA_Knowledge {
 		}
 		$weights = array();
 		foreach ( $subject as $w ) {
-			$weights[ $w ] = isset( $idf[ $w ] ) ? $idf[ $w ] : log( 1 + $n ) + 1;
+			$best = 0.0;
+			foreach ( $groups[ $w ] as $s ) {
+				$best = max( $best, $idf[ $s ] );
+			}
+			$weights[ $w ] = $groups[ $w ] ? $best : log( 1 + $n ) + 1;
 		}
 		if ( ! $weights ) {
 			$weights = array_fill_keys( array_keys( $df ), 1.0 );
@@ -261,9 +321,12 @@ class WIA_Knowledge {
 			$hit  = 0.0;
 			$have = array();
 			foreach ( $weights as $w => $v ) {
-				if ( isset( $matched[ $id ][ $w ] ) ) {
-					$hit   += $v;
-					$have[] = $w;
+				foreach ( $groups[ $w ] ? $groups[ $w ] : array( $w ) as $s ) {
+					if ( isset( $matched[ $id ][ $s ] ) ) {
+						$hit   += $v;
+						$have[] = $w;
+						break;
+					}
 				}
 			}
 			$by[ $id ]['score']    = round( $scores[ $id ], 4 );
@@ -277,7 +340,20 @@ class WIA_Knowledge {
 	/** True when every one of these stems appears in the site's active content. */
 	public static function knows( $stems ) {
 		$stems = array_values( array_unique( (array) $stems ) );
-		return $stems && count( self::document_frequency( $stems ) ) === count( $stems );
+		if ( ! $stems ) {
+			return false;
+		}
+		$all = array();
+		foreach ( $stems as $s ) {
+			$all = array_merge( $all, WIA_Text::match_group( $s ) );
+		}
+		$df = self::document_frequency( array_values( array_unique( $all ) ) );
+		foreach ( $stems as $s ) {
+			if ( ! array_intersect( WIA_Text::match_group( $s ), array_keys( $df ) ) ) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/** Number of distinct words the assistant knows. */

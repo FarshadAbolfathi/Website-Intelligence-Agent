@@ -156,8 +156,10 @@ def test_sites_are_isolated(engine, kit, sites):
     a, b = Scope(make_site(engine, "a")), Scope(make_site(engine, "b"))
     learn(ingestor, fetcher, a, sites["en"].url)
     learn(ingestor, fetcher, b, sites["fa"].url)
-    assert not store.search_lexical(b, "Berlin founded laptop repair")
-    assert not store.search_lexical(a, "پست پیشتاز گارانتی")
+    # Synonyms may match a site's own pages across languages («laptop» = «لپتاپ»); text of the other site never appears.
+    assert not any("Berlin" in h.text for h in store.search_lexical(b, "Berlin founded laptop repair"))
+    assert not any("پیشتاز" in h.text for h in store.search_lexical(a, "پست پیشتاز گارانتی"))
+    assert all(h.coverage < 0.6 for h in store.search_lexical(b, "Berlin founded laptop repair"))
 
 
 def test_competitor_content_invisible_from_own_scope(engine, kit, sites):

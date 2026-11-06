@@ -149,7 +149,18 @@ def test_public_api_is_narrow_and_tenant_isolated(admin, sites):
 def test_public_widget_config_exposes_only_widget_fields(admin, sites):
     site = make_site(admin, sites["en"].url)
     config = TestClient(admin.app).get("/public/v1/widget", params={"site_key": site["public_key"]}).json()
-    assert set(config) == {"title", "welcome", "not_found", "color", "position", "language", "avatar_url", "show_sources", "enabled", "starters"}
+    assert set(config) == {"title", "welcome", "not_found", "color", "position", "language", "avatar_url", "show_sources", "enabled", "starters", "teaser", "teaser_delay", "font_url"}
+
+
+def test_widget_settings_are_cleaned_and_served(admin, sites):
+    site = make_site(admin, sites["en"].url)
+    widget = {"enabled": False, "teaser": {"en": "Questions?", "xx": "dropped"}, "teaser_delay": 999, "font_url": "http://insecure.test/f.woff2", "starters": {"en": "Shipping\n\nReturns"}}
+    assert admin.patch(f"/api/sites/{site['id']}", json={"widget": widget}).status_code == 200
+    config = TestClient(admin.app).get("/public/v1/widget", params={"site_key": site["public_key"]}).json()
+    assert config["enabled"] is False and config["teaser"] == {"en": "Questions?"} and config["teaser_delay"] == 120
+    assert config["font_url"] == "" and config["starters"] == ["Shipping", "Returns"]
+    off = TestClient(admin.app).post("/public/v1/chat", json={"site_key": site["public_key"], "message": "hello"})
+    assert off.status_code == 403  # switched off: the public API refuses messages too
 
 
 def test_cors_only_for_the_sites_own_origin(admin, sites):

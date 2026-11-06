@@ -36,7 +36,8 @@
    "contact_hours": "زمان پاسخ‌گویی: {v}",
    "contact_page": "صفحه تماس",
    "contact_chip": "ارتباط با پشتیبانی",
-   "price_line": "قیمت: {price}"
+   "price_line": "قیمت: {price}",
+   "partial_quote": "درباره «{missing}» چیز مشخصی در سایت پیدا نکردم. نزدیک‌ترین مطلب:"
   },
   "ar": {
    "not_found": "عذرا، لم أجد إجابة عن هذا السؤال في معلومات هذا الموقع ولا أريد التخمين. يمكنك إعادة صياغة السؤال أو التواصل مع دعم الموقع.",
@@ -74,7 +75,8 @@
    "contact_hours": "أوقات الرد: {v}",
    "contact_page": "صفحة التواصل",
    "contact_chip": "التواصل مع الدعم",
-   "price_line": "السعر: {price}"
+   "price_line": "السعر: {price}",
+   "partial_quote": "لم أجد شيئا محددا عن «{missing}» في الموقع. أقرب ما وجدته:"
   },
   "en": {
    "not_found": "Sorry, I could not find an answer to that in this site's information, and I don't want to guess. Try rephrasing, or contact the site's support team.",
@@ -112,7 +114,8 @@
    "contact_hours": "Hours: {v}",
    "contact_page": "Contact page",
    "contact_chip": "Contact support",
-   "price_line": "Price: {price}"
+   "price_line": "Price: {price}",
+   "partial_quote": "I found nothing specific about “{missing}” on this site. The closest information:"
   }
  },
  "currency": {
@@ -146,5 +149,35 @@
    "ar": "يورو",
    "en": "EUR"
   }
+ },
+ "common_questions": {
+  "fa": [
+   "شرایط ارسال",
+   "روش‌های پرداخت",
+   "ضمانت و مرجوعی",
+   "ساعات کاری",
+   "پیگیری سفارش",
+   "تخفیف دارید؟",
+   "آدرس شما کجاست؟",
+   "ثبت‌نام چطور است؟"
+  ],
+  "ar": [
+   "الشحن",
+   "طرق الدفع",
+   "الضمان والإرجاع",
+   "ساعات العمل",
+   "تتبع الطلب",
+   "هل يوجد خصم؟",
+   "أين عنوانكم؟"
+  ],
+  "en": [
+   "Shipping",
+   "Payment methods",
+   "Warranty and returns",
+   "Opening hours",
+   "Track my order",
+   "Do you have discounts?",
+   "Where are you located?"
+  ]
  }
 }

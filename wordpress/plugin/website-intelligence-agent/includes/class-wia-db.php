@@ -191,6 +191,9 @@ class WIA_DB {
 			'engine_url'       => '',
 			'engine_key'       => '',
 			'starters'         => array(),
+			'teaser'           => array(),
+			'teaser_delay'     => 4,
+			'font_url'         => '',
 			'contact'          => array(),
 			'auto_learn'       => 1,
 		);

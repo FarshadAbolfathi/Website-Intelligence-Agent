@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import re
 from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -18,7 +19,7 @@ from sqlalchemy import and_, delete, func, insert, select, update
 from sqlalchemy.engine import Engine
 
 from core.knowledge import schema as t
-from core.text.normalize import arabic_clitic_variant, normalize, soft_stems_for, subject_tokens, tokenize
+from core.text.normalize import LANGUAGE, VARIANTS, arabic_clitic_variant, looks_like_verb, match_group, normalize, soft_stems_for, stem, subject_tokens, suffix_variants, tokenize
 
 
 class Corpus(str, Enum):
@@ -99,6 +100,9 @@ class KnowledgeStore(Protocol):
     def search_lexical(self, scope: Scope, query: str, limit: int = 10) -> list[ChunkHit]: ...
     def unknown_terms(self, scope: Scope, text: str) -> list[str]: ...
     def hits_for_chunks(self, scope: Scope, ids: list[int]) -> dict[int, ChunkHit]: ...
+
+
+_PRICE_INTENT = re.compile(LANGUAGE["intents"]["price"], re.IGNORECASE)
 
 
 class SqlKnowledgeStore:
@@ -236,6 +240,36 @@ class SqlKnowledgeStore:
         return int(n or 0), float(avg or 1.0)
 
     def known_similar_term(self, scope: Scope, term: str) -> str:
+        """For a word this site does not contain: a typo fix toward a rare indexed word, else the word without a
+        colloquial ending («سفارشم»), else a longer indexed word it starts («کوه» -> «کوهنوردی»). Empty if none."""
+        fixed = self._typo_fix(scope, term)
+        if fixed:
+            return fixed
+        for variant in suffix_variants(term, unknown=True):
+            if self._df(scope, [variant]):
+                return variant
+        if len(term) >= VARIANTS["prefix_min"] and not term.isdigit():
+            lo, hi = len(term) + VARIANTS["prefix_extra_min"], len(term) + VARIANTS["prefix_extra_max"]
+            q = (
+                select(t.postings.c.term, func.count().label("df"))
+                .where(t.postings.c.site_id == scope.site_id, t.postings.c.corpus == scope.corpus.value, t.postings.c.term.like(term + "%"), func.length(t.postings.c.term).between(lo, hi))
+                .group_by(t.postings.c.term).order_by(func.count().desc(), t.postings.c.term).limit(1)
+            )
+            with self.engine.connect() as c:
+                row = c.execute(q).first()
+            if row:
+                return row.term
+        return ""
+
+    def _df(self, scope: Scope, words: list[str]) -> dict[str, int]:
+        join = t.postings.join(t.chunks, t.chunks.c.id == t.postings.c.chunk_id).join(t.documents, t.documents.c.id == t.chunks.c.doc_id)
+        conds = [t.postings.c.site_id == scope.site_id, t.postings.c.corpus == scope.corpus.value, t.documents.c.status == "active", t.postings.c.term.in_(words)]
+        if scope.corpus is Corpus.COMPETITOR and scope.competitor_id is not None:
+            conds.append(t.chunks.c.competitor_id == scope.competitor_id)
+        with self.engine.connect() as c:
+            return dict(c.execute(select(t.postings.c.term, func.count()).select_from(join).where(*conds).group_by(t.postings.c.term)).all())
+
+    def _typo_fix(self, scope: Scope, term: str) -> str:
         """Correct a typo only toward a rare indexed word. A correction toward a common word would create wrong answers."""
         if len(term) < 5:
             return ""
@@ -258,16 +292,18 @@ class SqlKnowledgeStore:
         words = list(dict.fromkeys(subject_tokens(text)))
         if not words:
             return []
-        join = t.postings.join(t.chunks, t.chunks.c.id == t.postings.c.chunk_id).join(t.documents, t.documents.c.id == t.chunks.c.doc_id)
-        conds = [t.postings.c.site_id == scope.site_id, t.postings.c.corpus == scope.corpus.value, t.documents.c.status == "active", t.postings.c.term.in_(words)]
-        with self.engine.connect() as c:
-            known = {row[0] for row in c.execute(select(t.postings.c.term).select_from(join).where(*conds).distinct())}
-        return [w for w in words if w not in known and not self.known_similar_term(scope, w)]
+        known = set(self._df(scope, sorted({s for w in words for s in match_group(w)})))
+        unknown = [w for w in words if not (match_group(w) & known) and not self.known_similar_term(scope, w)]
+        return [w for w in unknown if not looks_like_verb(w)] if len(unknown) < len(words) else unknown
 
     def search_lexical(self, scope: Scope, query: str, limit: int = 10) -> list[ChunkHit]:
         terms = query_terms(query)
         if not terms:
             return []
+        # «هزینه دوره آیلتس چقدره؟»: the page that states prices should rank first. These words are soft, so their
+        # absence never blocks an answer.
+        if _PRICE_INTENT.search(normalize(query)):
+            terms = list(dict.fromkeys([*terms, *(stem(normalize(w)) for w in LANGUAGE["price_terms"]["words"])]))
         n, avg = self.corpus_stats(scope)
         if not n:
             return []
@@ -282,26 +318,36 @@ class SqlKnowledgeStore:
             with self.engine.connect() as c:
                 return dict(c.execute(q).all())
 
-        df = df_of(terms)
         base_tokens = [w for w in terms if w in tokenize(query)]
+        expanded = lambda: list(dict.fromkeys([*terms, *(s for w in base_tokens for s in match_group(w))]))  # noqa: E731
+        df = df_of(expanded())
         corrected: dict[str, str] = {}
+        soft = soft_stems_for(query)
         for term in base_tokens:
-            if term not in df:
+            # A question word such as «میرسه» is never "corrected" into a subject («مدرسه»).
+            if term not in soft and not (match_group(term) & df.keys()):
                 fixed = self.known_similar_term(scope, term)
                 if fixed:
                     corrected[term] = fixed
         if corrected:
             terms = [corrected.get(w, w) for w in terms]
             base_tokens = [corrected.get(w, w) for w in base_tokens]
-            df = df_of(list(dict.fromkeys(terms)))
+            df = df_of(expanded())
         if not df:
             return []
 
         idf = {w: math.log(1 + (n - f + 0.5) / (f + 0.5)) for w, f in df.items()}
         # A query word absent from this site weighs the most: «X» that we have never seen must block the answer.
+        # A word counts as present when any word of its synonym group is present.
         soft = soft_stems_for(query)
         subject_tokens = [w for w in base_tokens if w not in soft] or base_tokens
-        weights = {w: idf.get(w, math.log(1 + n) + 1) for w in subject_tokens} or dict.fromkeys(df, 1.0)
+        groups = {w: match_group(w) & df.keys() for w in subject_tokens}
+        # An unknown verb («میاد») does not block a question that has another subject word.
+        nouns = [w for w in subject_tokens if groups[w] or not looks_like_verb(w)]
+        if nouns and len(nouns) < len(subject_tokens):
+            subject_tokens = nouns
+            groups = {w: groups[w] for w in nouns}
+        weights = {w: max((idf[s] for s in groups[w]), default=math.log(1 + n) + 1) for w in subject_tokens} or dict.fromkeys(df, 1.0)
         total_weight = sum(weights.values()) or 1.0
 
         q = select(t.postings.c.chunk_id, t.postings.c.term, t.postings.c.tf, t.chunks.c.length).select_from(join).where(*conds, t.postings.c.term.in_(list(df)))
@@ -319,7 +365,7 @@ class SqlKnowledgeStore:
             hit = hits.get(chunk_id)
             if hit:
                 hit.score = round(scores[chunk_id], 4)
-                hit.coverage = round(sum(v for w, v in weights.items() if w in matched[chunk_id]) / total_weight, 4)
+                hit.coverage = round(sum(v for w, v in weights.items() if (groups.get(w) or {w}) & matched[chunk_id]) / total_weight, 4)
                 out.append(hit)
         return out
 

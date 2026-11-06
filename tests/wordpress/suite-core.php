@@ -17,6 +17,14 @@ foreach ( $vectors['subject_tokens'] as $c ) {
 	ok( WIA_Text::subject_tokens( $c['in'] ) === $c['out'], 'subject: ' . $c['why'], WIA_Text::subject_tokens( $c['in'] ) );
 }
 
+foreach ( $vectors['synonyms'] as $c ) {
+	ok( in_array( WIA_Text::tokenize( $c['b'] )[0], WIA_Text::match_group( WIA_Text::tokenize( $c['a'] )[0] ), true ), 'synonyms: ' . $c['why'] );
+}
+foreach ( $vectors['not_synonyms'] as $c ) {
+	ok( ! in_array( WIA_Text::tokenize( $c['b'] )[0], WIA_Text::match_group( WIA_Text::tokenize( $c['a'] )[0] ), true ), 'not synonyms: ' . $c['why'] );
+}
+ok( in_array( 'سفارش', WIA_Text::suffix_variants( 'سفارشم' ), true ) && ! WIA_Text::suffix_variants( 'laptops' ), 'colloquial endings are tried for unknown words' );
+
 // ---- activation did no synchronous work ------------------------------------------------------------
 ok( 'running' === WIA_Ingest::scan_state()['state'], 'activation only schedules the first scan' );
 ok( wp_next_scheduled( 'wia_daily' ) > 0, 'daily maintenance is scheduled' );

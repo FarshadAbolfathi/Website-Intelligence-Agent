@@ -1,6 +1,6 @@
 import pytest
 
-from core.text.normalize import detect_language, normalize, numbers_in, subject_tokens, tokenize
+from core.text.normalize import detect_language, normalize, numbers_in, match_group, subject_tokens, suffix_variants, tokenize
 
 
 def test_normalize_vectors(vectors):
@@ -21,6 +21,25 @@ def test_token_equivalence_vectors(vectors):
 def test_subject_token_vectors(vectors):
     for case in vectors["subject_tokens"]:
         assert subject_tokens(case["in"]) == case["out"], case["why"]
+
+
+def test_synonym_vectors(vectors):
+    for case in vectors["synonyms"]:
+        assert tokenize(case["b"])[0] in match_group(tokenize(case["a"])[0]), case["why"]
+    for case in vectors["not_synonyms"]:
+        assert tokenize(case["b"])[0] not in match_group(tokenize(case["a"])[0]), case["why"]
+
+
+def test_colloquial_endings_are_tried_for_unknown_words():
+    assert "سفارش" in suffix_variants("سفارشم") and "سفارش" in suffix_variants("سفارشتون")
+    assert suffix_variants("laptops") == [] and suffix_variants("کیف") == []
+    assert "تولید" in suffix_variants("تولیدی", unknown=True) and "تولید" not in suffix_variants("تولیدی")
+
+
+def test_soft_words_never_hide_a_synonym(vectors):
+    from core.text.normalize import LANGUAGE  # noqa: PLC0415
+
+    assert not set(LANGUAGE["soft_words"]) & {w for g in LANGUAGE["synonyms"]["groups"] for w in g}
 
 
 @pytest.mark.parametrize("a,b", [("۲٬۵۰۰٬۰۰۰ تومان", "2500000"), ("٢٥٠٠", "2500"), ("1,250.50", "1250.5"), ("999.00", "999")])

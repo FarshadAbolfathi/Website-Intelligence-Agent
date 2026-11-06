@@ -35,7 +35,10 @@ DEFAULT_WIDGET = {
     "avatar_url": "",
     "show_sources": True,
     "enabled": True,
-    "starters": [],
+    "starters": {},
+    "teaser": {},
+    "teaser_delay": 4,
+    "font_url": "",
 }
 
 
@@ -97,9 +100,13 @@ class ModelPull(BaseModel):
 def _clean_widget(raw: dict, current: dict) -> dict:
     """Keep only known widget fields, with safe types. Widget settings are served publicly."""
     merged = {**DEFAULT_WIDGET, **current}
-    for key in ("title", "welcome", "not_found"):
+    for key, limit in (("title", 500), ("welcome", 500), ("not_found", 500), ("teaser", 200), ("starters", 1000)):
         if isinstance(raw.get(key), dict):
-            merged[key] = {k: str(v)[:500] for k, v in raw[key].items() if k in ("fa", "ar", "en")}
+            merged[key] = {k: str(v)[:limit] for k, v in raw[key].items() if k in ("fa", "ar", "en")}
+    if isinstance(raw.get("teaser_delay"), int) and not isinstance(raw.get("teaser_delay"), bool):
+        merged["teaser_delay"] = max(0, min(120, raw["teaser_delay"]))
+    font = str(raw.get("font_url", merged["font_url"]))
+    merged["font_url"] = font if font.startswith("https://") or not font else merged["font_url"]
     color = str(raw.get("color", merged["color"]))
     if len(color) in (4, 7) and color[0] == "#" and all(ch in "0123456789abcdefABCDEF" for ch in color[1:]):
         merged["color"] = color
@@ -518,6 +525,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         public_headers(response, origin)
         widget = {**DEFAULT_WIDGET, **(site["settings"] or {}).get("widget", {})}
         widget["language"] = widget.get("language") or site["default_language"]
+        # Stored per language as lines of text; the widget receives the list for its language.
+        starters = widget.get("starters") if isinstance(widget.get("starters"), dict) else {}
+        widget["starters"] = [line.strip() for line in str(starters.get(widget["language"], "")).splitlines() if line.strip()][:6]
         return widget
 
     @app.post("/public/v1/chat")

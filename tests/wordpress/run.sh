@@ -65,6 +65,8 @@ wp plugin install "$WOO" --activate >/dev/null 2>&1 || { echo "FAIL could not in
 run_suite "WooCommerce suite" suite-woo.php
 
 run_suite "dialogue, learning, knowledge map and reference sites" suite-dialog.php
+run_suite "conversation quality: a shop, tuned questions" suite-conversation.php
+run_suite "conversation quality: a language school, untuned questions" suite-conversation-service.php
 
 echo "=== large site: batched scan under a low memory limit"
 run_suite "scale suite" suite-scale.php

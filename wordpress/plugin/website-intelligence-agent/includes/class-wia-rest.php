@@ -119,6 +119,9 @@ class WIA_REST {
 			'avatar_url'   => (string) $s['avatar_url'],
 			'show_sources' => (bool) $s['show_sources'],
 			'starters'     => WIA_Chat::starters( WIA_DB::default_language() ),
+			'teaser'       => (array) $s['teaser'],
+			'teaser_delay' => (int) $s['teaser_delay'],
+			'font_url'     => (string) $s['font_url'],
 		);
 	}
 }

@@ -4,9 +4,9 @@ A site assistant you host yourself. It learns your website's content and answers
 
 There is no central service. Your content and conversations stay on your own server, and no cloud AI service is required.
 
-| Asking which product the visitor means | Knowledge map in the WordPress admin |
-|---|---|
-| ![The widget lists matching products with live prices and offers them as buttons](docs/images/wp-dialog-clarify.png) | ![Knowledge map: topics, pages, learned phrases and gaps](docs/images/wp-knowledge-map-selected.png) |
+| Asking which product the visitor means | On a phone | Knowledge map in the WordPress admin |
+|---|---|---|
+| ![The widget lists matching products with live prices and offers them as buttons](docs/images/wp-dialog-clarify.png) | ![The widget full screen on a phone, with common questions as buttons](docs/images/wp-widget-mobile.png) | ![Knowledge map: topics, pages, learned phrases and gaps](docs/images/wp-knowledge-map-selected.png) |
 
 > **Status: early pre-release, not yet used in production.** See [Project status](#project-status) for what has and has not been tested.
 
@@ -84,6 +84,8 @@ Tests use realistic sample sites served over real HTTP, not real customer sites.
 | Dashboard and widget in a real browser | Tested in Chromium |
 | WordPress plugin from its ZIP, with WooCommerce, on PHP 8.2 | Tested, including a 3000-article site |
 | Lite dialogue, learning from conversations, knowledge map, reference sites (over HTTP to a local test site) | Tested, also in Chromium on desktop and mobile |
+| Conversation quality on two test businesses, a shop and a language school | Measured: 37/37 and 20/21. See [language handling](docs/languages.md#how-well-it-understands) |
+| Widget on real phones and in Safari | **Not run yet.** Tested in Chromium with a phone viewport |
 | **PostgreSQL** | **Not run yet.** Tests exist in `tests/integration/test_postgres.py` |
 | **Qdrant** | **Not run yet.** Tests exist in `tests/integration/test_qdrant.py` |
 | **Docker image and `docker compose up`** | **Not run yet** |

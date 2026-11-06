@@ -45,6 +45,9 @@ function wia_boot() {
 	WIA_Ingest::init();
 	WIA_REST::init();
 	WIA_Reference::init();
+	// Suggested questions are cached for every page; any settings change rebuilds them.
+	add_action( 'update_option_wia_settings', array( 'WIA_Chat', 'forget_starters' ) );
+	add_action( 'add_option_wia_settings', array( 'WIA_Chat', 'forget_starters' ) );
 	WIA_Widget::init();
 	if ( is_admin() ) {
 		require_once WIA_DIR . 'includes/class-wia-admin.php';

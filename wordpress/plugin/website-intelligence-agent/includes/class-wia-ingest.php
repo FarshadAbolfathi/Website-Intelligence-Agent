@@ -305,6 +305,7 @@ class WIA_Ingest {
 				$scan['finished'] = current_time( 'mysql', true );
 				update_option( 'wia_last_sweep', (string) $scan['started'], false );
 				WIA_Graph::forget();
+				WIA_Chat::forget_starters();
 				WIA_Learn::snapshot();
 			}
 		}

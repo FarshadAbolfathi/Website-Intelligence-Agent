@@ -94,7 +94,7 @@ class WIA_Learn {
 	/* ---------- counters ---------- */
 
 	public static function count( $mode ) {
-		$map = array( 'extractive' => 'answered', 'structured' => 'answered', 'faq' => 'answered', 'contact' => 'answered', 'clarify' => 'clarify', 'not_found' => 'missed', 'rephrase' => 'missed', 'rejected' => 'rejected' );
+		$map = array( 'extractive' => 'answered', 'structured' => 'answered', 'faq' => 'answered', 'contact' => 'answered', 'clarify' => 'clarify', 'partial' => 'clarify', 'not_found' => 'missed', 'rephrase' => 'missed', 'rejected' => 'rejected' );
 		if ( ! isset( $map[ $mode ] ) ) {
 			return;
 		}
