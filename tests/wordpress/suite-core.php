@@ -20,6 +20,13 @@ foreach ( $vectors['subject_tokens'] as $c ) {
 foreach ( $vectors['synonyms'] as $c ) {
 	ok( in_array( WIA_Text::tokenize( $c['b'] )[0], WIA_Text::match_group( WIA_Text::tokenize( $c['a'] )[0] ), true ), 'synonyms: ' . $c['why'] );
 }
+foreach ( $vectors['unknown_variants'] as $c ) {
+	ok( in_array( $c['contains'], WIA_Text::suffix_variants( WIA_Text::normalize( $c['in'] ), true ), true ), 'unknown-word variant: ' . $c['in'] );
+}
+foreach ( $vectors['soft_variants'] as $c ) {
+	$token = WIA_Text::tokenize( $c['in'] )[0];
+	ok( WIA_Text::is_soft( $token, WIA_Text::soft_stems( $c['in'] ) ) === $c['soft'], 'framing word with an ending: ' . $c['in'] );
+}
 foreach ( $vectors['not_synonyms'] as $c ) {
 	ok( ! in_array( WIA_Text::tokenize( $c['b'] )[0], WIA_Text::match_group( WIA_Text::tokenize( $c['a'] )[0] ), true ), 'not synonyms: ' . $c['why'] );
 }
@@ -112,6 +119,9 @@ ok( 1 === count( WIA_Knowledge::search( 'zebra crossing maintenance schedule' ) 
 $wpdb->insert( WIA_DB::t( 'faqs' ), array( 'question' => 'ساعت کاری شما چیست؟', 'answer' => 'هر روز ۹ تا ۱۷', 'keywords' => 'ساعت کاری، زمان کار', 'language' => 'fa', 'created_at' => current_time( 'mysql', true ) ) );
 $a = WIA_Chat::answer( 'ساعت کاری فروشگاه را بگو' );
 ok( 'faq' === $a['mode'] && false !== strpos( $a['text'], '۹ تا ۱۷' ), 'owner FAQ answers first', $a );
+$wpdb->insert( WIA_DB::t( 'faqs' ), array( 'question' => 'تخفیف دانشجویی دارید؟', 'answer' => 'دانشجویان ۵ درصد تخفیف می‌گیرند.', 'keywords' => 'دانشجو', 'language' => '', 'created_at' => current_time( 'mysql', true ) ) );
+$a = WIA_Chat::answer( 'برای دانشجوها تخفیف هست؟' );
+ok( 'faq' === $a['mode'], 'FAQ keywords match as stems («دانشجوها» -> «دانشجو»)', $a );
 
 // ---- settings ---------------------------------------------------------------------------------------
 $s = WIA_DB::settings();

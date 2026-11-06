@@ -575,8 +575,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ])
         sources = [{"url": s.url, "title": s.title, "checked_at": s.crawled_at} for s in answer.sources] if widget.get("show_sources", True) else []
         return {"conversation_id": conv_id, "answer": answer.text, "language": answer.language, "mode": answer.mode, "sources": sources, "stale": answer.stale,
-                # Same shape as the WordPress edition. Clarifying suggestions and contact buttons exist only in Lite so far.
-                "suggestions": [], "actions": []}
+                # Same shape as the WordPress edition. Contact buttons need the owner's contact settings, which exist only in Lite so far.
+                "suggestions": answer.suggestions[:4], "actions": []}
 
     # ---- static files --------------------------------------------------------------------
     widget_file = Path(settings.widget_path)

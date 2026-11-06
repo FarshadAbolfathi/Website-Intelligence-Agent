@@ -125,7 +125,7 @@ def test_full_flow_crawl_chat_and_multi_turn(admin, sites):
     assert first.status_code == 200, first.text
     body = first.json()
     assert "۲۵٬۰۰۰٬۰۰۰" in body["answer"] and body["mode"] == "structured" and body["sources"][0]["url"].endswith("/products/phone-x")
-    assert body["suggestions"] == [] and body["actions"] == []  # same response shape as the WordPress edition
+    assert isinstance(body["suggestions"], list) and body["actions"] == []  # same response shape as the WordPress edition
     second = public.post("/public/v1/chat", json={"site_key": site["public_key"], "message": "موجوده؟", "conversation_id": body["conversation_id"]}).json()
     assert "گوشی ایکس" in second["answer"] and "موجود است" in second["answer"] and second["conversation_id"] == body["conversation_id"]
     assert len(admin.get(f"/api/sites/{site['id']}/conversations/{body['conversation_id']}").json()) == 4
@@ -218,8 +218,9 @@ def test_competitor_flow_and_separation_through_api(admin, sites):
     report = admin.get(f"/api/sites/{site['id']}/competitor-reports").json()[0]["report"]
     assert report["products"]["matched"][0]["price_difference"] == -100.0
     public = TestClient(admin.app)
-    for question, forbidden in [("How much is Drone Q?", "777"), ("How much is Laptop A?", "899"), ("Do you offer free overnight shipping?", "overnight")]:
+    for question, forbidden in [("How much is Drone Q?", "777"), ("How much is Laptop A?", "899"), ("Do you offer free overnight shipping?", "overnight shipping on every")]:
         answer = public.post("/public/v1/chat", json={"site_key": site["public_key"], "message": question}).json()
+        # The reply may repeat the visitor's own words («I found nothing about "overnight"»); the competitor's text must not appear.
         assert forbidden not in answer["answer"], question
         assert not any(sites["competitor"].url in s["url"] for s in answer["sources"])
     assert admin.post(f"/api/sites/{site['id']}/competitors", json={"name": "self", "base_url": sites["en"].url}).status_code == 422

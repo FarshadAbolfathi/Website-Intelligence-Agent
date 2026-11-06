@@ -55,7 +55,10 @@ class OllamaProvider:
         try:
             response = httpx.post(f"{self.base_url}/api/chat", json=payload, timeout=self.timeout)
             response.raise_for_status()
-            return response.json()["message"]["content"].strip()
+            body = response.json()
+            # Reported by the runtime, so cost per conversation is measured rather than estimated.
+            self.last_usage = {"prompt_tokens": int(body.get("prompt_eval_count", 0)), "completion_tokens": int(body.get("eval_count", 0))}
+            return body["message"]["content"].strip()
         except (httpx.HTTPError, KeyError, ValueError) as exc:
             raise LLMError(f"ollama: {exc}") from exc
 
@@ -87,7 +90,10 @@ class LlamaCppProvider:
         try:
             response = httpx.post(f"{self.base_url}/v1/chat/completions", json=payload, headers=self.headers, timeout=self.timeout)
             response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"].strip()
+            body = response.json()
+            usage = body.get("usage") or {}
+            self.last_usage = {"prompt_tokens": int(usage.get("prompt_tokens", 0)), "completion_tokens": int(usage.get("completion_tokens", 0))}
+            return body["choices"][0]["message"]["content"].strip()
         except (httpx.HTTPError, KeyError, IndexError, ValueError) as exc:
             raise LLMError(f"llama.cpp: {exc}") from exc
 

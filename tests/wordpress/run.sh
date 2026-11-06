@@ -68,6 +68,17 @@ run_suite "dialogue, learning, knowledge map and reference sites" suite-dialog.p
 run_suite "conversation quality: a shop, tuned questions" suite-conversation.php
 run_suite "conversation quality: a language school, untuned questions" suite-conversation-service.php
 
+echo "=== evaluation dataset (shared/eval), scored by core/evaluation/dataset.py"
+mkdir -p "$ROOT/dist/eval"
+EVAL_OUT=$(wp eval-file /tests/suite-eval.php) || FAILED=1
+printf '%s\n' "$EVAL_OUT" | grep -v '^WIA_EVAL_JSON '
+printf '%s\n' "$EVAL_OUT" | sed -n 's/^WIA_EVAL_JSON //p' > "$ROOT/dist/eval/lite.json"
+# Scored on the host with the standard library only: the same scorer as the Self-Hosted edition.
+(cd "$ROOT" && python3 -m core.evaluation.dataset dist/eval/lite.json --min "${WIA_EVAL_MIN:-0.95}") || FAILED=1
+EVAL_OUT=$("${COMPOSE[@]}" exec -T -e WIA_EVAL_SET=holdout cli wp eval-file /tests/suite-eval.php) || FAILED=1
+printf '%s\n' "$EVAL_OUT" | sed -n 's/^WIA_EVAL_JSON //p' > "$ROOT/dist/eval/lite-holdout.json"
+(cd "$ROOT" && python3 -m core.evaluation.dataset dist/eval/lite-holdout.json --min "${WIA_EVAL_HOLDOUT_MIN:-0.9}") || FAILED=1
+
 echo "=== large site: batched scan under a low memory limit"
 run_suite "scale suite" suite-scale.php
 

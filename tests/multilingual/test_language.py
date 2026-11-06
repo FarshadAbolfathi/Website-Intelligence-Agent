@@ -49,3 +49,15 @@ def test_numbers_fold_across_scripts(a, b):
 
 def test_mixed_latin_brand_inside_persian_sentence_stays_persian():
     assert detect_language("قیمت گوشی Samsung Galaxy چقدر است؟") == "fa"
+
+
+def test_unknown_word_variants_vectors(vectors):
+    for case in vectors["unknown_variants"]:
+        assert case["contains"] in suffix_variants(normalize(case["in"]), unknown=True), case
+
+
+def test_soft_variant_vectors(vectors):
+    from core.text.normalize import is_soft, soft_stems_for
+    for case in vectors["soft_variants"]:
+        token = tokenize(case["in"])[0]
+        assert is_soft(token, soft_stems_for(case["in"])) is case["soft"], case

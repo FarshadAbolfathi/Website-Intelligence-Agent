@@ -21,7 +21,7 @@ Choose by what your hosting can run.
 | Learns from | WordPress content, through its APIs | Any website, by crawling |
 | Search | Words and their variants | Words and meaning (hybrid) |
 | How answers are made | **Quotes your site's text. Writes no new sentences** | Local language model with source checks, or quotes if no model |
-| Dialogue | Clarifying questions with buttons, rejection («نه، این نبود»), handoff to your contact details | Follow-up questions; no clarifying buttons yet |
+| Dialogue | Clarifying questions with buttons, rejection («نه، این نبود»), handoff to your contact details | Follow-ups, clarifying choices, two-part questions, and partial answers that name what is missing; no rejection or handoff yet |
 | Learning | From conversations, plus a knowledge map and reference sites | Self-evaluation and competitor reports |
 | Prices and stock | Read live from WooCommerce | Read from page data, refreshed when old |
 | Competitor research | No | Yes |
@@ -85,6 +85,7 @@ Tests use realistic sample sites served over real HTTP, not real customer sites.
 | WordPress plugin from its ZIP, with WooCommerce, on PHP 8.2 | Tested, including a 3000-article site |
 | Lite dialogue, learning from conversations, knowledge map, reference sites (over HTTP to a local test site) | Tested, also in Chromium on desktop and mobile |
 | Conversation quality on two test businesses, a shop and a language school | Measured: 37/37 and 20/21. See [language handling](docs/languages.md#how-well-it-understands) |
+| Shared evaluation sets (fa, ar, en, mixed, multi-turn, injection), both editions scored by the same code | Measured: 72/73 on the development set; 47/50 on the held-out set at its first run. See [evaluation](docs/evaluation.md) |
 | Widget on real phones and in Safari | **Not run yet.** Tested in Chromium with a phone viewport |
 | **PostgreSQL** | **Not run yet.** Tests exist in `tests/integration/test_postgres.py` |
 | **Qdrant** | **Not run yet.** Tests exist in `tests/integration/test_qdrant.py` |

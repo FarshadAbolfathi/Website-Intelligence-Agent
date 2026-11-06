@@ -61,6 +61,8 @@ class ChunkHit:
     corpus: str
     crawl_date: datetime
     structured: dict
+    # Subject words of the query that this chunk contains, directly or through a synonym or variant.
+    matched: frozenset = frozenset()
 
 
 def utcnow() -> datetime:
@@ -366,6 +368,7 @@ class SqlKnowledgeStore:
             if hit:
                 hit.score = round(scores[chunk_id], 4)
                 hit.coverage = round(sum(v for w, v in weights.items() if (groups.get(w) or {w}) & matched[chunk_id]) / total_weight, 4)
+                hit.matched = frozenset(w for w in subject_tokens if (groups.get(w) or {w}) & matched[chunk_id])
                 out.append(hit)
         return out
 

@@ -33,6 +33,8 @@ Persian, Arabic and English are handled at every stage, not only in the interfac
 | The same shop, 7 hard questions (idioms, either-or questions, other languages) | 5/7 |
 | A language school, 21 questions **not** used for tuning | 20/21 |
 
+The shared evaluation sets in `shared/eval` extend this to Arabic, English, mixed-language and multi-turn questions, and score both editions with the same code. See [evaluation](evaluation.md).
+
 The two hard misses show the limit of an edition that quotes and has no model: «اگه خوشم نیومد میتونم پس بدم؟» (an idiom for returning an item) and «تولیدی هستید یا فروشگاه؟» (an either-or question). These are small sample sites, not real ones.
 
 ## Known weaknesses
@@ -41,4 +43,6 @@ The two hard misses show the limit of an edition that quotes and has no model: �
 - Synonyms are a fixed list. A site's own vocabulary is better taught through the **Learning** tab. Semantic search covers some of this on the Self-Hosted edition; Lite has no such fallback.
 - A question in one language about content in another works only with embeddings. Without a chat model, the answer quotes the content in its own language and says so.
 - Very short questions are hard to classify. A single word shared by Persian and Arabic falls back to the site's default language.
+- Mixed messages are decided by their grammar words: «international shipping دارید؟» is Persian, "Is there گارانتی?" is English. A message with no grammar words at all falls back to counting letters.
+- Arabic dialects are covered only through their common question words («ابي», «شو», «وين», «شلون»). Broken plurals («أيام» for «يوم», «مقاهي» for «مقهى») are not unified.
 - The language-quality metric checks the language and script of an answer, not its style. Fluency needs human review. See [the model notes](models.md).

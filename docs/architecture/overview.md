@@ -61,20 +61,27 @@ Every store and vector operation takes a `Scope(site_id, corpus, competitor_id)`
 
 ```text
 question
-  -> language detection
-  -> greeting or thanks             -> fixed text
+  -> language detection             (grammar words decide in a mixed message)
+  -> greeting, thanks, farewell     -> fixed text
   -> injection or secret probe      -> fixed refusal; the model is never called
   -> owner's FAQ                    -> owner's text
+  -> contact question               -> the sentence of the contact page that answers it
   -> catalog question               -> product list
+  -> two questions in one message   -> each answered from its own page, unless one page covers both
   -> follow-up resolution           (adds the previous subject, without a model)
-  -> hybrid retrieval
+  -> hybrid retrieval               (a page in the question's language first, when it covers the question as well)
   -> comparison of two named products
-  -> confidence gate                -> honest "not found"
-  -> price or stock                 -> structured facts, with date
+  -> confidence gate fails          -> price or stock of a product named without doubt
+                                    -> or quote the nearest text and name the missing words ("partial")
+                                    -> or honest "not found", offering what exists
+  -> price or stock                 -> structured facts, with date; several matching products -> "clarify"
+                                       unresolved stock or product price -> quote; never the model
   -> generate with fenced sources   (or quote, when no model is configured)
   -> verify numbers and sentence support
        failed                       -> quote the site's text instead
 ```
+
+Both editions follow these rules. `shared/eval` holds the conversations they are both scored on, see [evaluation](../evaluation.md).
 
 ### Dialogue in the Lite edition
 
@@ -83,10 +90,8 @@ question
 ```text
 «نه، این نبود»                     -> the previous answer's alternatives
 «بله» after a single offer         -> answer that offer
-contact question                   -> owner's contact details, or the contact page
-several products, none fully named -> list with live prices, offered as buttons ("clarify")
+contact question                   -> owner's contact details as buttons, with the contact page quoted
 gate fails                         -> learned phrase for the unknown words, if active
-                                   -> otherwise name the unknown words and offer what exists
 second miss in a row               -> append the contact details ("handoff")
 ```
 

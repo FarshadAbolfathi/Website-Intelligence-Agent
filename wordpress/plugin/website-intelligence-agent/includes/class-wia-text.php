@@ -150,6 +150,15 @@ class WIA_Text {
 				$out[] = substr( $token, 0, -strlen( $s ) );
 			}
 		}
+		if ( $unknown ) {
+			// «تشحنون» -> «شحن»: an Arabic present-tense verb tried as its root.
+			$verb = $v['arabic_verb'];
+			foreach ( $verb['suffixes'] as $s ) {
+				if ( in_array( mb_substr( $token, 0, 1 ), $verb['prefixes'], true ) && self::ends( $token, $s ) && self::len( $token ) - 1 - self::len( $s ) >= $verb['min_rest'] ) {
+					$out[] = mb_substr( $token, 1, self::len( $token ) - 1 - self::len( $s ) );
+				}
+			}
+		}
 		return $out;
 	}
 
@@ -180,6 +189,22 @@ class WIA_Text {
 	public static function subject_tokens( $text ) {
 		$soft = self::soft_stems( $text );
 		return array_values( array_filter( self::tokenize( $text ), function ( $w ) use ( $soft ) { return ! isset( $soft[ $w ] ); } ) );
+	}
+
+	/**
+	 * A framing word, also with a colloquial ending: «قیمتش» frames a question as «قیمت» does. Used only to decide
+	 * whether a question refers back to the conversation. Search keeps «لازمه» and «مناسبه» as words that can match.
+	 */
+	public static function is_soft( $token, $soft ) {
+		if ( isset( $soft[ $token ] ) ) {
+			return true;
+		}
+		foreach ( self::suffix_variants( $token ) as $v ) {
+			if ( isset( $soft[ $v ] ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** @return string[] normalised, stemmed search tokens */
@@ -265,13 +290,27 @@ class WIA_Text {
 		if ( 0 === $arabic && 0 === $latin ) {
 			return $default;
 		}
-		if ( $latin > $arabic ) {
-			return 'en';
-		}
 		$d        = self::data()['detect'];
 		$fa_words = array_flip( $d['fa_words'] );
 		$ar_words = array_flip( $d['ar_words'] );
 		preg_match_all( '/[\x{0600}-\x{06FF}]+/u', str_replace( "\u{200C}", ' ', $text ), $m );
+		if ( $latin > $arabic ) {
+			// «international shipping دارید؟»: English terms in a Persian sentence. The language of the grammar words
+			// decides, not the number of letters; "Is there گارانتی?" stays English.
+			$grammar = self::stopwords() + array_flip( self::data()['soft_words'] );
+			$en      = 0;
+			$rtl     = 0;
+			preg_match_all( '/[A-Za-z]+/', $text, $lm );
+			foreach ( $lm[0] as $w ) {
+				$en += isset( $grammar[ strtolower( $w ) ] ) ? 1 : 0;
+			}
+			foreach ( $m[0] as $w ) {
+				$rtl += ( isset( $fa_words[ $w ] ) || isset( $ar_words[ $w ] ) || isset( $grammar[ self::normalize( $w ) ] ) ) ? 1 : 0;
+			}
+			if ( $rtl <= $en ) {
+				return 'en';
+			}
+		}
 		$fa = 0.0;
 		$ar = 0.0;
 		foreach ( $m[0] as $w ) {

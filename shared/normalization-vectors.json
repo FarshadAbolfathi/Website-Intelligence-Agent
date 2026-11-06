@@ -134,6 +134,16 @@
     {
       "in": "hello",
       "out": "en"
+    },
+    {
+      "in": "international shipping دارید؟",
+      "out": "fa",
+      "why": "English terms in a Persian sentence: the grammar words decide"
+    },
+    {
+      "in": "Is there گارانتی for the espresso machine?",
+      "out": "en",
+      "why": "a Persian word in an English sentence"
     }
   ],
   "tokens_equal": [
@@ -207,6 +217,27 @@
         "کیف"
       ],
       "why": "price and question words are soft"
+    },
+    {
+      "in": "هزینه‌اش چقدره؟",
+      "out": [],
+      "why": "a clitic split off by the zero-width non-joiner is not a word, and «هزینه» only frames the question"
+    },
+    {
+      "in": "هل تشحنون إلى الكويت؟",
+      "out": [
+        "تشحنون",
+        "کویت"
+      ],
+      "why": "Arabic question word removed"
+    },
+    {
+      "in": "ابي اشتري بالجملة لمقهى، شو الشروط؟",
+      "out": [
+        "جمله",
+        "لمقهی"
+      ],
+      "why": "Gulf «ابي» and «شو» frame the question"
     }
   ],
   "synonyms": [
@@ -251,6 +282,30 @@
       "a": "پشتی",
       "b": "پشت",
       "why": "a trailing «ی» is removed only from unknown words"
+    }
+  ],
+  "unknown_variants": [
+    {
+      "in": "تشحنون",
+      "contains": "شحن",
+      "why": "Arabic present-tense verb tried as its root"
+    },
+    {
+      "in": "تولیدی",
+      "contains": "تولید",
+      "why": "trailing «ی» removed from an unknown word"
+    }
+  ],
+  "soft_variants": [
+    {
+      "in": "قیمتش",
+      "soft": true,
+      "why": "«قیمت» with a colloquial ending refers back to the product under discussion"
+    },
+    {
+      "in": "گارانتی",
+      "soft": false,
+      "why": "a subject word, not a framing word"
     }
   ]
 }

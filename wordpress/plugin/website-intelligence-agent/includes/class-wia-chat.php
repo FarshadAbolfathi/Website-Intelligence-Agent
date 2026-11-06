@@ -35,7 +35,7 @@ class WIA_Chat {
 	 *
 	 * @return array text, language, mode, sources[url,title,checked_at], stale, context_doc, suggestions[], actions[label,url], alts[], learn
 	 */
-	public static function answer( $question, $context_doc = 0, $previous_question = '' ) {
+	public static function answer( $question, $context_doc = 0, $previous_question = '', $split = true ) {
 		$question = trim( mb_substr( (string) $question, 0, 1000 ) );
 		$default  = WIA_DB::default_language();
 		$lang     = WIA_Text::detect_language( $question, $default );
@@ -91,6 +91,13 @@ class WIA_Chat {
 			}
 		}
 
+		if ( $split && ! WIA_Text::intent( 'compare', $normalized ) ) {
+			$combined = self::multi_part( $question, $lang, $context_doc, $previous_question );
+			if ( $combined ) {
+				return $combined;
+			}
+		}
+
 		$wants_price = WIA_Text::intent( 'price', $normalized );
 		$wants_stock = WIA_Text::intent( 'stock', $normalized );
 		$query       = self::resolve_followup( $question, $normalized, $context_doc, $previous_question );
@@ -110,13 +117,16 @@ class WIA_Chat {
 		// is answered confidently and the product page says nothing about that subject, the question stands alone.
 		if ( $query !== $question && $hits ) {
 			$alone = WIA_Knowledge::search( $question, 8, $alone_info );
-			$own   = $alone_info['subject'];
+			$soft  = WIA_Text::soft_stems( $question );
+			// «قیمتش» refers back like «قیمت».
+			$own   = array_values( array_filter( $alone_info['subject'], function ( $w ) use ( $soft ) { return ! WIA_Text::is_soft( $w, $soft ); } ) );
 			if ( self::best_coverage( $alone ) >= WIA_Knowledge::MIN_COVERAGE && $own && ! $alone_info['unknown'] && array_diff( $own, $hits[0]['matched'] ) ) {
 				$query = $question;
 				$hits  = $alone;
 				$info  = $alone_info;
 			}
 		}
+		$hits = self::prefer_language( $hits, $lang );
 		// Each product holds only part of a comparison's words, so the gate would refuse it. Requiring two
 		// products that are really named in the question is the stricter check here.
 		if ( $hits && WIA_Text::intent( 'compare', $normalized ) ) {
@@ -133,6 +143,19 @@ class WIA_Chat {
 				$hits    = $alias;
 				$learned = true;
 			} else {
+				// «Is the Cold Brew kit in stock?»: «kit» is unknown, but the product is named without doubt.
+				if ( $hits && ( $wants_price || $wants_stock ) ) {
+					$named = self::pick_product( $hits, $query );
+					$fact  = $named ? self::product_fact( array( $named ), $query, $lang, $wants_price, $wants_stock, $context_doc ) : null;
+					if ( $fact ) {
+						$missing = self::display_words( $question, $info['unknown'] );
+						if ( $missing ) {
+							$fact['text'] = self::msg( $lang, 'partial_quote', array( 'missing' => self::join_words( $missing, $lang ) ) ) . "\n" . $fact['text'];
+							$fact['mode'] = 'partial';
+						}
+						return $fact;
+					}
+				}
 				return self::miss( $question, $lang, $hits, $info, $context_doc );
 			}
 		}
@@ -489,6 +512,12 @@ class WIA_Chat {
 		if ( ! $tokens ) {
 			return null;
 		}
+		$asked = array();
+		foreach ( $tokens as $w ) {
+			foreach ( array_merge( WIA_Text::match_group( $w ), WIA_Text::suffix_variants( $w, true ) ) as $v ) {
+				$asked[ $v ] = true;
+			}
+		}
 		$best       = null;
 		$best_score = 0.0;
 		foreach ( (array) $wpdb->get_results( 'SELECT * FROM ' . WIA_DB::t( 'faqs' ) . ' ORDER BY id', ARRAY_A ) as $faq ) { // phpcs:ignore WordPress.DB
@@ -498,6 +527,15 @@ class WIA_Chat {
 			foreach ( preg_split( '/[،,\n]/u', (string) $faq['keywords'] ) as $keyword ) {
 				$keyword = trim( $keyword );
 				if ( '' !== $keyword && false !== strpos( $normalized, ' ' . WIA_Text::normalize( $keyword ) . ' ' ) ) {
+					return $faq;
+				}
+				// «دانشجوها» matches the keyword «دانشجو»: keywords are compared as stems, not only as text.
+				$words = WIA_Text::tokenize( $keyword );
+				$all   = (bool) $words;
+				foreach ( $words as $w ) {
+					$all = $all && (bool) array_intersect_key( array_flip( WIA_Text::match_group( $w ) ), $asked );
+				}
+				if ( $all ) {
 					return $faq;
 				}
 			}
@@ -565,7 +603,148 @@ class WIA_Chat {
 				$best_ratio = $ratio;
 			}
 		}
-		return $best_ratio >= 0.5 ? $best : null;
+		if ( $best_ratio >= 0.5 ) {
+			return $best;
+		}
+		$named = self::distinctive_products( $query );
+		if ( $named ) {
+			$top     = max( $named );
+			$winners = array_keys( $named, $top, true );
+			if ( 1 === count( $winners ) ) {
+				foreach ( $hits as $hit ) {
+					if ( (int) $hit['doc_id'] === (int) $winners[0] && 'product' === $hit['content_type'] ) {
+						return $hit;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Products named by a word only their own name contains: «روبوستا» names «دانه قهوه روبوستا» although «دانه» and
+	 * «قهوه» are in other names too. @return array doc id => number of such words in the question
+	 */
+	private static function distinctive_products( $query ) {
+		global $wpdb;
+		$rows = (array) $wpdb->get_results( 'SELECT id, title FROM ' . WIA_DB::t( 'documents' ) . " WHERE status = 'active' AND content_type = 'product' LIMIT 2000", ARRAY_A ); // phpcs:ignore WordPress.DB
+		$names = array();
+		$df    = array();
+		foreach ( $rows as $row ) {
+			$names[ (int) $row['id'] ] = array_unique( WIA_Text::tokenize( $row['title'] ) );
+			foreach ( $names[ (int) $row['id'] ] as $token ) {
+				$df[ $token ] = isset( $df[ $token ] ) ? $df[ $token ] + 1 : 1;
+			}
+		}
+		$asked = array();
+		foreach ( WIA_Text::tokenize( $query ) as $w ) {
+			foreach ( WIA_Text::match_group( $w ) as $g ) {
+				$asked[ $g ] = true;
+			}
+		}
+		$out = array();
+		foreach ( $names as $id => $tokens ) {
+			$own = 0;
+			foreach ( $tokens as $token ) {
+				$own += ( 1 === $df[ $token ] && ! preg_match( '/^\d+$/', $token ) && isset( $asked[ $token ] ) ) ? 1 : 0;
+			}
+			if ( $own ) {
+				$out[ $id ] = $own;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * «ضمانت دستگاه اسپرسو چقدره؟» names a product but asks about its warranty: «چقدره» is not always a price. A known
+	 * word outside the product name means the question is about something else.
+	 */
+	private static function asks_beyond( $hit, $query ) {
+		$name = array_flip( array_unique( WIA_Text::tokenize( $hit['title'] ) ) );
+		WIA_Knowledge::search( $query, 1, $qinfo );
+		$soft = WIA_Text::soft_stems( $query );
+		foreach ( WIA_Text::subject_tokens( $query ) as $w ) {
+			if ( in_array( $w, $qinfo['unknown'], true ) || WIA_Text::is_soft( $w, $soft ) ) {
+				continue;
+			}
+			if ( ! array_intersect_key( array_flip( WIA_Text::match_group( $w ) ), $name ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** An Arabic question answered from the Arabic page when one covers it as well as the top page does. */
+	private static function prefer_language( $hits, $lang ) {
+		if ( ! $hits || '' === (string) $hits[0]['language'] || $hits[0]['language'] === $lang ) {
+			return $hits;
+		}
+		foreach ( $hits as $i => $hit ) {
+			if ( $i > 0 && $hit['language'] === $lang && (float) $hit['coverage'] >= (float) $hits[0]['coverage'] - 0.05 ) {
+				array_splice( $hits, $i, 1 );
+				array_unshift( $hits, $hit );
+				break;
+			}
+		}
+		return $hits;
+	}
+
+	/**
+	 * Two questions in one message, each answered from its own page. Only when one page does not already cover the
+	 * whole message («اشتراک چقدر تخفیف داره و میشه لغوش کرد؟» is one page).
+	 */
+	private static function multi_part( $question, $lang, $context_doc, $previous_question ) {
+		$parts = array();
+		foreach ( preg_split( '/\s+(?:و|and|also|plus|همچنین|ضمنا)\s+|[؟?]+\s+(?=\S)/iu', $question ) as $part ) {
+			// Not trim(): it works on bytes, and «؟» shares its first byte with «د».
+			$part = (string) preg_replace( '/^[\s،,؟?]+|[\s،,؟?]+$/u', '', $part );
+			if ( '' !== $part && WIA_Text::subject_tokens( $part ) ) {
+				$parts[] = $part;
+			}
+		}
+		if ( count( $parts ) < 2 ) {
+			return null;
+		}
+		$whole   = WIA_Knowledge::search( $question, 5, $winfo );
+		$subject = array_diff( $winfo['subject'], $winfo['unknown'] );
+		if ( $whole && self::best_coverage( $whole ) >= WIA_Knowledge::MIN_COVERAGE && ! array_diff( $subject, $whole[0]['matched'] ) ) {
+			return null;
+		}
+		$answers = array();
+		$seen    = array();
+		$good    = 0;
+		foreach ( $parts as $part ) {
+			$a         = self::answer( $part, $context_doc, $previous_question, false );
+			$answers[] = $a;
+			if ( in_array( $a['mode'], array( 'faq', 'extractive', 'structured' ), true ) ) {
+				$key = $a['sources'] ? $a['sources'][0]['url'] : $a['text'];
+				if ( isset( $seen[ $key ] ) ) {
+					return null;
+				}
+				$seen[ $key ] = true;
+				$good++;
+			}
+		}
+		if ( ! $good ) {
+			return null;
+		}
+		$lines   = array();
+		$sources = array();
+		$modes   = array();
+		$doc     = $context_doc;
+		foreach ( $answers as $i => $a ) {
+			if ( in_array( $a['mode'], array( 'faq', 'extractive', 'structured' ), true ) ) {
+				$lines[]  = $a['text'];
+				$sources  = array_merge( $sources, $a['sources'] );
+				$modes[]  = $a['mode'];
+				$doc      = $a['context_doc'] ? $a['context_doc'] : $doc;
+			} else {
+				$words   = self::display_words( $parts[ $i ], WIA_Text::subject_tokens( $parts[ $i ] ) );
+				$lines[] = self::msg( $lang, 'not_found_word', array( 'words' => self::join_words( $words ? $words : array( $parts[ $i ] ), $lang ) ) );
+			}
+		}
+		$modes = array_values( array_unique( $modes ) );
+		return self::shape( array( 'text' => implode( "\n\n", $lines ), 'language' => $lang, 'mode' => 1 === count( $modes ) ? $modes[0] : 'extractive', 'sources' => $sources, 'context_doc' => (int) $doc ) );
 	}
 
 	private static function product_fact( $hits, $query, $lang, $wants_price, $wants_stock, $context_doc ) {
@@ -578,7 +757,7 @@ class WIA_Chat {
 				}
 			}
 		}
-		if ( ! $hit ) {
+		if ( ! $hit || self::asks_beyond( $hit, $query ) ) {
 			return null;
 		}
 		$live = WIA_Catalog::live( (int) $hit['source_id'] );
@@ -610,10 +789,11 @@ class WIA_Chat {
 
 	private static function compare( $hits, $query, $lang ) {
 		$q        = array_unique( WIA_Text::tokenize( $query ) );
+		$named    = self::distinctive_products( $query );
 		$products = array();
 		foreach ( $hits as $hit ) {
 			$name = array_unique( WIA_Text::tokenize( $hit['title'] ) );
-			if ( 'product' === $hit['content_type'] && $name && count( array_intersect( $name, $q ) ) / count( $name ) >= 0.5 && ! isset( $products[ $hit['doc_id'] ] ) ) {
+			if ( 'product' === $hit['content_type'] && $name && ( count( array_intersect( $name, $q ) ) / count( $name ) >= 0.5 || isset( $named[ (int) $hit['doc_id'] ] ) ) && ! isset( $products[ $hit['doc_id'] ] ) ) {
 				$products[ $hit['doc_id'] ] = $hit;
 			}
 		}

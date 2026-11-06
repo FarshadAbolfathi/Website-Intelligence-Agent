@@ -69,21 +69,27 @@
   "yes",
   "you",
   "your",
+  "ات",
   "از",
   "است",
+  "اش",
   "التی",
   "الذی",
   "الذین",
   "الی",
+  "ام",
   "اما",
   "ان",
   "انا",
   "انت",
+  "اند",
   "او",
   "اون",
   "اگر",
   "ای",
   "ایا",
+  "اید",
+  "ایم",
   "این",
   "با",
   "باشد",
@@ -94,6 +100,7 @@
   "بود",
   "بگو",
   "تا",
+  "تان",
   "تلک",
   "تو",
   "توانم",
@@ -111,6 +118,7 @@
   "رو",
   "ست",
   "سلام",
+  "شان",
   "شد",
   "شده",
   "شما",
@@ -126,6 +134,7 @@
   "لکن",
   "ما",
   "ماذا",
+  "مان",
   "متی",
   "مع",
   "ممنون",
@@ -224,8 +233,11 @@
   "sell",
   "show",
   "stock",
+  "take",
+  "takes",
   "tell",
   "there",
+  "took",
   "want",
   "ارید",
   "اشرح",
@@ -239,6 +251,8 @@
   "اومد",
   "اگه",
   "اینجا",
+  "بازید",
+  "بازین",
   "باید",
   "ببینم",
   "بخرم",
@@ -332,6 +346,8 @@
   "هستید",
   "هستیم",
   "هستین",
+  "وقت",
+  "وقته",
   "چجور",
   "چجوری",
   "چطوریه",
@@ -349,11 +365,26 @@
   "کیه"
  ],
  "arabic_function_words": {
-  "_comment": "Arabic question words that are also ordinary Persian words after normalisation (کیف = 'how' in Arabic, 'bag' in Persian; قد = 'height'; هل = 'cardamom'). They are indexed and searchable, and count as soft words only when the question itself is Arabic.",
+  "_comment": "Arabic question words that are also ordinary Persian words after normalisation (کیف = 'how' in Arabic, 'bag' in Persian; قد = 'height'; هل = 'cardamom'). They are indexed and searchable, and count as soft words only when the question itself is Arabic. Gulf and Levantine question words («ابي» I want, «شو/ايش/وش» what, «وين» where) and framing verbs («يستغرق» takes) are soft in Arabic questions for the same reason: they frame a question without naming its subject. Some are Persian words after normalisation («ابی» = «آبی»), so they cannot be global soft words.",
   "words": [
-   "کیف",
+   "ابغا",
+   "ابغی",
+   "ابی",
+   "اشتری",
+   "ایش",
+   "بدی",
+   "تستغرق",
+   "شلون",
+   "شو",
+   "فیه",
+   "قد",
+   "نشتری",
    "هل",
-   "قد"
+   "وش",
+   "وین",
+   "کیف",
+   "یستغرق",
+   "یوم"
   ]
  },
  "detect": {
@@ -476,7 +507,7 @@
   "compare": "تفاوت|فرق|مقایسه|بهتره|بهتر است|compare|difference|versus|\\bvs\\b|better|الفرق|مقارنة|افضل|أفضل",
   "catalog": "چه محصولات|محصولاتی|چه چیزهایی می ?فروش|چی می ?فروش|what products|what do you sell|ما هي المنتجات|ماذا تبيع",
   "followup": "^(?:و |و$|پس |اون|آن|این|ش$|چی\\b|چطور|قیمتش|موجوده|گارانتی(?:ش)?|and\\b|what about|how about|it\\b|its\\b|that\\b|this\\b|they\\b|them\\b|وماذا|و ماذا|ماذا عن|هذا|هذه|سعره|ضمانه|هل هو)|\\S+(?:ش|شون)\\s*[؟?]?$",
-  "greeting": "^(?:(?:سلام|درود|وقت بخیر|وقتتون بخیر|روز بخیر|صبح بخیر|عصر بخیر|شب بخیر|خسته نباشید|hi|hello|hey|good (?:morning|evening|afternoon)|مرحبا|اهلا|أهلا|السلام عليكم|سلام عليكم)[\\s!.،,؟?]*)+$",
+  "greeting": "^(?:(?:سلام|درود|وقت بخیر|وقتتون بخیر|روز بخیر|صبح بخیر|عصر بخیر|شب بخیر|خسته نباشید|(?:hi|hello|hey)(?: there| all| everyone)?|good (?:morning|evening|afternoon)|مرحبا|اهلا|أهلا|السلام عليكم|سلام عليكم)[\\s!.،,؟?]*)+$",
   "thanks": "^(?:ممنون|مرسی|متشکرم|تشکر|سپاس|thanks?(?: you)?|thx|شكرا|شكرا لك|شكرا جزيلا)[\\s!.،,]*$",
   "contact": "شماره تماس|شماره تلفن|تلفن|تماس با|راه ارتباط|راه های ارتباط|ارتباط با|پشتیبانی|اپراتور|کارشناس|واتساپ|واتس اپ|تلگرام|ایمیل|ادرس فروشگاه|ادرس شما|ادرستون|کجا هستید|contact|phone|call you|email|support|human|operator|whatsapp|telegram|رقم الهاتف|هاتف|التواصل|تواصل|واتساب|البرید|خدمه العملاء",
   "farewell": "^(?:خداحافظ|خدانگهدار|خدا نگهدار|بای|فعلا|bye|goodbye|see you|مع السلامه|الی اللقاء)[\\s!.،,]*$",
@@ -645,7 +676,7 @@
   ]
  },
  "word_variants": {
-  "_comment": "Every question word also matches its forms without a colloquial or possessive ending («روزه» -> «روز», «سفارشم» -> «سفارش»). For a word the site does not contain, a trailing «ی» is also removed («تولیدی» -> «تولید»), then the word is matched as the start of a longer indexed word («کوه» -> «کوهنوردی»). An unknown word that looks like a verb («میاد», «نمیشه») does not block an answer.",
+  "_comment": "Every question word also matches its forms without a colloquial or possessive ending («روزه» -> «روز», «سفارشم» -> «سفارش»). For a word the site does not contain, a trailing «ی» is also removed («تولیدی» -> «تولید»), then the word is matched as the start of a longer indexed word («کوه» -> «کوهنوردی»). An unknown word that looks like a verb («میاد», «نمیشه») does not block an answer. An unknown Arabic word with a present-tense prefix and plural ending is also tried as its root («تشحنون» -> «شحن»).",
   "suffixes": [
    "مون",
    "تون",
@@ -673,7 +704,20 @@
    "نمی",
    "می"
   ],
-  "verb_max": 8
+  "verb_max": 8,
+  "arabic_verb": {
+   "prefixes": [
+    "ی",
+    "ت",
+    "ن"
+   ],
+   "suffixes": [
+    "ون",
+    "ین",
+    "ان"
+   ],
+   "min_rest": 3
+  }
  },
  "price_terms": {
   "_comment": "Added, without blocking, to a question about price or cost, so that the page that states prices ranks first.",

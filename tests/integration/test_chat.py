@@ -210,6 +210,12 @@ def test_faq_wins_over_retrieval_and_respects_language(world):
     assert other_site.mode != "faq"
 
 
+def test_faq_keywords_match_as_stems(world):
+    with world["engine"].begin() as c:
+        c.execute(insert(t.faqs).values(site_id=world["ids"]["fa"], question="تخفیف دانشجویی دارید؟", answer="دانشجویان ۵ درصد تخفیف می‌گیرند.", keywords="دانشجو", language="", created_at=utcnow()))
+    assert bot(world).answer(world["ids"]["fa"], "برای دانشجوها تخفیف هست؟").mode == "faq"
+
+
 def test_greeting_in_each_language(world):
     engine = bot(world)
     assert engine.answer(world["ids"]["fa"], "سلام").mode == "smalltalk"
@@ -294,7 +300,8 @@ def test_chat_engine_cannot_search_competitor_corpus(world):
     drone = engine.answer(site_id, "How much is Drone Q?")
     assert drone.mode == "not_found" and "777" not in drone.text
     shipping = engine.answer(site_id, "Do you offer free overnight shipping?")
-    assert "overnight" not in shipping.text
+    # Saying «I found nothing about "overnight"» repeats the visitor; the competitor's own sentence must not appear.
+    assert "overnight shipping on every" not in shipping.text and not any(site.url in s.url for s in shipping.sources)
     same_named = engine.answer(site_id, "How much is Laptop A?")
     assert "999" in same_named.text and "899" not in same_named.text
     assert not any(site.url in s.url for s in same_named.sources)

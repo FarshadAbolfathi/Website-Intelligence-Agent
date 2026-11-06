@@ -54,4 +54,4 @@ Groundedness and relevance compare words and exact numbers against the source. T
 
 ## Fine-tuning
 
-Not needed. Your content reaches the model through retrieval, and updating an index is immediate and reversible. Fine-tuning would only be worth examining later for tone, given enough reviewed conversations.
+Not needed. Your content reaches the model through retrieval, and updating an index is immediate and reversible. Fine-tuning would only be worth examining later for tone, given enough reviewed conversations. The measured reasons are in [evaluation](evaluation.md#fine-tuning-assessment).

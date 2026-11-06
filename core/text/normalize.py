@@ -106,6 +106,8 @@ _FA_YEH_KAF = re.compile("[یک]")
 _AR_ONLY = re.compile("[ةىيكأإؤ]")
 _FA_WORDS = frozenset(LANGUAGE["detect"]["fa_words"])
 _AR_WORDS = frozenset(LANGUAGE["detect"]["ar_words"])
+_LATIN_WORD = re.compile(r"[A-Za-z]+")
+_GRAMMAR = STOPWORDS | SOFT_WORDS
 
 
 def detect_language(text: str, default: str = "en") -> str:
@@ -116,10 +118,15 @@ def detect_language(text: str, default: str = "en") -> str:
     latin = len(_LATIN.findall(text))
     if arabic_script == 0 and latin == 0:
         return default
-    if latin > arabic_script:
-        return "en"
-
     words = re.findall(r"[؀-ۿ]+", text.replace("‌", " "))
+    if latin > arabic_script:
+        # «international shipping دارید؟»: English terms in a Persian sentence. The language of the grammar words
+        # decides, not the number of letters; "Is there گارانتی?" stays English.
+        frame_en = sum(1 for w in _LATIN_WORD.findall(text) if w.lower() in _GRAMMAR)
+        frame_rtl = sum(1 for w in words if w in _FA_WORDS or w in _AR_WORDS or normalize(w) in _GRAMMAR)
+        if frame_rtl <= frame_en:
+            return "en"
+
     fa = ar = 0.0
     for w in words:
         if w in _FA_WORDS:
@@ -165,7 +172,13 @@ def suffix_variants(token: str, unknown: bool = False) -> list[str]:
     if _LATIN_OR_NUM.match(token):
         return []
     endings = VARIANTS["suffixes"] + (VARIANTS["unknown_only_suffixes"] if unknown else [])
-    return [token[: -len(s)] for s in endings if token.endswith(s) and len(token) - len(s) >= VARIANTS["min_rest"]]
+    out = [token[: -len(s)] for s in endings if token.endswith(s) and len(token) - len(s) >= VARIANTS["min_rest"]]
+    if unknown:
+        verb = VARIANTS["arabic_verb"]
+        for suffix in verb["suffixes"]:
+            if token[:1] in verb["prefixes"] and token.endswith(suffix) and len(token) - 1 - len(suffix) >= verb["min_rest"]:
+                out.append(token[1: -len(suffix)])
+    return out
 
 
 def match_group(token: str) -> frozenset[str]:
@@ -179,6 +192,12 @@ def match_group(token: str) -> frozenset[str]:
 def looks_like_verb(token: str) -> bool:
     """«میاد», «نمیشه»: a verb the site does not contain says nothing about the subject."""
     return not _LATIN_OR_NUM.match(token) and 3 <= len(token) <= VARIANTS["verb_max"] and any(token.startswith(p) for p in VARIANTS["verb_prefixes"])
+
+
+def is_soft(token: str, soft: frozenset[str]) -> bool:
+    """A framing word, also with a colloquial ending: «قیمتش» frames a question as «قیمت» does. Used only to decide
+    whether a question refers back to the conversation. Search keeps «لازمه» and «مناسبه» as words that can match."""
+    return token in soft or any(v in soft for v in suffix_variants(token))
 
 
 def subject_tokens(text: str) -> list[str]:

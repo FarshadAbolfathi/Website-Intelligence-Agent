@@ -1,0 +1,29 @@
+{
+  "about": "Held-out evaluation set. Written after the development set's fixes and never used to tune the language rules, so its score estimates how the assistant does on a site it has not seen. A made-up bicycle shop with a repair service.",
+  "currency": "IRT",
+  "contact": { "phone": "031-0000-4444" },
+  "pages": [
+    { "lang": "fa", "type": "page", "slug": "about", "title": "درباره فروشگاه", "html": "<p>فروشگاه دوچرخه نمونه از سال ۱۳۹۲ در اصفهان دوچرخه کوهستان، دوچرخه شهری و لوازم جانبی می‌فروشد و تعمیرگاه تخصصی دارد.</p>" },
+    { "lang": "fa", "type": "page", "slug": "service", "title": "تعمیر و سرویس دوچرخه", "html": "<p>سرویس کامل دوچرخه شامل تنظیم دنده، ترمز و روغن‌کاری زنجیر ۶۰۰ هزار تومان است و معمولاً دو روز کاری طول می‌کشد. تعویض لاستیک در همان روز انجام می‌شود.</p>" },
+    { "lang": "fa", "type": "page", "slug": "delivery", "title": "ارسال و تحویل", "html": "<p>دوچرخه‌ها مونتاژشده با باربری به همه شهرها ارسال می‌شوند و هزینه باربری به عهده خریدار است. لوازم جانبی با پست پیشتاز ارسال می‌شوند و ۲ تا ۴ روز کاری می‌رسند.</p>" },
+    { "lang": "fa", "type": "page", "slug": "warranty", "title": "گارانتی دوچرخه", "html": "<p>بدنه همه دوچرخه‌ها پنج سال گارانتی دارد. قطعات مصرفی مانند لاستیک و لنت ترمز گارانتی ندارند.</p>" },
+    { "lang": "fa", "type": "page", "slug": "installments", "title": "خرید اقساطی", "html": "<p>خرید اقساطی تا شش قسط با چک یا کارت اعتباری امکان‌پذیر است. پیش‌پرداخت ۳۰ درصد قیمت است.</p>" },
+    { "lang": "fa", "type": "page", "slug": "contact", "title": "تماس با ما", "html": "<p>تلفن فروشگاه ۰۳۱-۰۰۰۰-۴۴۴۴ است. ساعات کاری هر روز به جز جمعه از ۹ صبح تا ۹ شب است. آدرس: اصفهان، خیابان نمونه، پلاک ۱۲.</p>" },
+    { "lang": "fa", "type": "post", "slug": "size-guide", "title": "راهنمای انتخاب سایز دوچرخه", "html": "<p>برای قد ۱۶۰ تا ۱۷۰ سانتی‌متر سایز فریم ۱۶ اینچ و برای قد ۱۷۰ تا ۱۸۵ سانتی‌متر سایز فریم ۱۸ اینچ مناسب است.</p>" },
+    { "lang": "fa", "type": "page", "slug": "rental", "title": "اجاره دوچرخه", "html": "<p>اجاره دوچرخه شهری روزانه ۲۰۰ هزار تومان است. برای اجاره، ارائه کارت ملی لازم است.</p>" },
+    { "lang": "en", "type": "page", "slug": "tours", "title": "Guided bike tours", "html": "<p>We run guided mountain bike tours every Friday. A tour costs 40 dollars, including bike and helmet rental.</p>" },
+    { "lang": "en", "type": "page", "slug": "export", "title": "Export", "html": "<p>We export bikes to Iraq and Armenia. Export orders need a minimum of 20 bikes.</p>" },
+    { "lang": "ar", "type": "page", "slug": "ar-tours", "title": "جولات الدراجات", "html": "<p>ننظم جولات بالدراجات الجبلية كل يوم جمعة. سعر الجولة 40 دولارا مع الدراجة والخوذة.</p>" },
+    { "lang": "ar", "type": "page", "slug": "ar-export", "title": "التصدير", "html": "<p>نصدر الدراجات إلى العراق وأرمينيا. الحد الأدنى لطلبات التصدير 20 دراجة.</p>" }
+  ],
+  "products": [
+    { "slug": "mtb", "name": "دوچرخه کوهستان آلومینیومی", "price": "18000000", "stock": "instock", "body": "دوچرخه کوهستان با فریم آلومینیوم، ۲۴ دنده و ترمز دیسکی هیدرولیک." },
+    { "slug": "city", "name": "دوچرخه شهری کلاسیک", "price": "9500000", "stock": "outofstock", "body": "دوچرخه شهری با سبد جلو، گلگیر و چراغ دینام." },
+    { "slug": "helmet", "name": "کلاه ایمنی دوچرخه", "price": "1200000", "stock": "instock", "body": "کلاه ایمنی سبک با تهویه و بند قابل تنظیم." },
+    { "slug": "lock", "name": "قفل زنجیری", "price": "450000", "stock": "instock", "body": "قفل زنجیری فولادی با دو کلید." },
+    { "slug": "pump", "name": "پمپ Mini Pump", "price": "350000", "stock": "instock", "body": "پمپ دستی کوچک برای والو پرستا و شریدر." }
+  ],
+  "faqs": [
+    { "question": "تخفیف دانشجویی دارید؟", "answer": "دانشجویان با ارائه کارت دانشجویی ۵ درصد تخفیف می‌گیرند.", "keywords": "دانشجو، دانشجویی" }
+  ]
+}
