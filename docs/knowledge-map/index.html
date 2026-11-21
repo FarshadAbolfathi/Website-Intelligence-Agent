@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore an interactive website knowledge map in English, Persian and Arabic.">
+  <title>Knowledge Map · Website Intelligence Agent</title>
+  <link rel="stylesheet" href="./map.css">
+  <script type="module" src="./map.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="https://github.com/FarshadAbolfathi/Website-Intelligence-Agent" dir="ltr"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>Website Intelligence Agent</a>
+      <nav aria-label="Language" data-i18n="language" data-attr="aria-label">
+        <a href="?lang=en" lang="en" hreflang="en" data-lang="en" aria-current="page">English</a>
+        <a href="?lang=fa" lang="fa" hreflang="fa" data-lang="fa">فارسی</a>
+        <a href="?lang=ar" lang="ar" hreflang="ar" data-lang="ar">العربية</a>
+      </nav>
+    </div>
+  </header>
+  <main class="shell">
+    <div class="intro">
+      <h1 data-i18n="title">Knowledge map</h1>
+      <p data-i18n="intro">See what a website assistant can answer, where its knowledge comes from, and which questions reveal gaps in the site’s content.</p>
+    </div>
+    <section class="workspace" aria-labelledby="map-title">
+      <div class="map-panel">
+        <div class="map-header">
+          <div>
+            <h2 id="map-title" data-i18n="store">Outdoor gear shop</h2>
+            <p data-i18n="sample">Interactive demo with sample content</p>
+          </div>
+          <div class="search">
+            <input id="search" type="search" autocomplete="off" data-i18n="search" data-attr="placeholder" placeholder="Find a node…" aria-label="Find a node">
+            <span id="search-status" role="status"></span>
+          </div>
+        </div>
+        <ul class="legend" aria-label="Map legend" data-i18n="legend" data-attr="aria-label">
+          <li><span class="symbol topic"></span><span data-i18n="topic">Topic</span></li>
+          <li><span class="symbol page"></span><span data-i18n="page">Source page</span></li>
+          <li><span class="symbol gap"></span><span data-i18n="gap">Content gap</span></li>
+          <li><span class="symbol learned"></span><span data-i18n="learned">Learned phrase</span></li>
+        </ul>
+        <div class="map-window" id="map-window" dir="ltr">
+          <div id="map">
+            <div class="boundary" aria-hidden="true"></div>
+            <span class="boundary-label" data-i18n="boundary">Website knowledge boundary</span>
+            <canvas id="edges" aria-hidden="true"></canvas>
+            <div id="nodes"></div>
+          </div>
+        </div>
+        <div class="map-footer">
+          <span data-i18n="hint">Select a node to explore its connections.</span>
+          <div class="zoom">
+            <button id="zoom-out" type="button" aria-label="Zoom out" data-i18n="zoomOut" data-attr="aria-label">−</button>
+            <button id="fit" type="button" data-i18n="fit">Fit map</button>
+            <button id="zoom-in" type="button" aria-label="Zoom in" data-i18n="zoomIn" data-attr="aria-label">+</button>
+          </div>
+        </div>
+      </div>
+      <aside class="inspect" aria-labelledby="inspect-title">
+        <div class="inspect-inner">
+          <span id="node-kind" class="kind"></span>
+          <h2 id="inspect-title" aria-live="polite">Backpacks</h2>
+          <p id="node-description"></p>
+          <h3 id="connection-title" data-i18n="connections">Connections</h3>
+          <div id="connections" class="connections"></div>
+        </div>
+        <div class="replay-panel">
+          <h3 data-i18n="replayTitle">How a phrase is learned</h3>
+          <p data-i18n="replayIntro">Follow three sample conversations that reach the same source page.</p>
+          <ol class="steps" id="steps">
+            <li><button type="button" data-step="1">1</button></li>
+            <li><button type="button" data-step="2">2</button></li>
+            <li><button type="button" data-step="3">3</button></li>
+          </ol>
+          <p id="replay-status" role="status"></p>
+          <button id="replay" class="replay-button" type="button" data-i18n="replay">Replay learning</button>
+        </div>
+      </aside>
+    </section>
+    <footer class="site-footer">
+      <p data-i18n="footer">The demo uses sample data. The WordPress plugin builds its knowledge map from the site’s own index.</p>
+      <a href="https://github.com/FarshadAbolfathi/Website-Intelligence-Agent" data-i18n="github">View source on GitHub</a>
+    </footer>
+    <noscript>This interactive map requires JavaScript. برای نمایش نقشه جاوااسکریپت را فعال کنید. تتطلّب الخريطة تفعيل JavaScript.</noscript>
+  </main>
+</body>
+</html>

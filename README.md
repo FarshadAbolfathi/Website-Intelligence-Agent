@@ -10,6 +10,8 @@ There is no central service. Your content and conversations stay on your own ser
 
 > **Status: early pre-release, not yet used in production.** See [Project status](#project-status) for what has and has not been tested.
 
+[Explore the interactive knowledge map](https://farshadabolfathi.github.io/Website-Intelligence-Agent/knowledge-map/) in English, [Persian](https://farshadabolfathi.github.io/Website-Intelligence-Agent/knowledge-map/?lang=fa), or [Arabic](https://farshadabolfathi.github.io/Website-Intelligence-Agent/knowledge-map/?lang=ar). Select a node to see its source connections, or replay how three sample conversations turn a content gap into a search alias.
+
 ## Two editions
 
 Choose by what your hosting can run.
