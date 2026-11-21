@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Explore an interactive website knowledge map in English, Persian and Arabic.">
   <title>Knowledge Map · Website Intelligence Agent</title>
-  <link rel="stylesheet" href="./map.css">
-  <script type="module" src="./map.js"></script>
+  <link rel="stylesheet" href="./map.css?v=2">
+  <script type="module" src="./map.js?v=2"></script>
 </head>
 <body>
   <header class="site-header">
@@ -24,16 +24,19 @@
       <h1 data-i18n="title">Knowledge map</h1>
       <p data-i18n="intro">See what a website assistant can answer, where its knowledge comes from, and which questions reveal gaps in the site’s content.</p>
     </div>
-    <section class="workspace" aria-labelledby="map-title">
+    <section class="workspace" id="workspace" aria-labelledby="map-title">
       <div class="map-panel">
         <div class="map-header">
           <div>
             <h2 id="map-title" data-i18n="store">Outdoor gear shop</h2>
             <p data-i18n="sample">Interactive demo with sample content</p>
           </div>
-          <div class="search">
-            <input id="search" type="search" autocomplete="off" data-i18n="search" data-attr="placeholder" placeholder="Find a node…" aria-label="Find a node">
-            <span id="search-status" role="status"></span>
+          <div class="map-actions">
+            <div class="search">
+              <input id="search" type="search" autocomplete="off" data-i18n="search" data-attr="placeholder" placeholder="Find a node…" aria-label="Find a node">
+              <span id="search-status" role="status"></span>
+            </div>
+            <button id="replay" class="replay-button" type="button" data-i18n="replay">Replay learning</button>
           </div>
         </div>
         <ul class="legend" aria-label="Map legend" data-i18n="legend" data-attr="aria-label">
@@ -42,20 +45,22 @@
           <li><span class="symbol gap"></span><span data-i18n="gap">Content gap</span></li>
           <li><span class="symbol learned"></span><span data-i18n="learned">Learned phrase</span></li>
         </ul>
-        <div class="map-window" id="map-window" dir="ltr">
+        <div class="map-window" id="map-window" dir="ltr" tabindex="0" aria-describedby="map-hint" aria-label="Knowledge map" data-i18n="title" data-attr="aria-label">
           <div id="map">
             <div class="boundary" aria-hidden="true"></div>
             <span class="boundary-label" data-i18n="boundary">Website knowledge boundary</span>
             <canvas id="edges" aria-hidden="true"></canvas>
             <div id="nodes"></div>
+            <span id="traveler" class="traveler" hidden aria-hidden="true"></span>
           </div>
         </div>
         <div class="map-footer">
-          <span data-i18n="hint">Select a node to explore its connections.</span>
+          <span id="map-hint" data-i18n="hint">Drag to explore. Select any node to see its connections.</span>
           <div class="zoom">
             <button id="zoom-out" type="button" aria-label="Zoom out" data-i18n="zoomOut" data-attr="aria-label">−</button>
             <button id="fit" type="button" data-i18n="fit">Fit map</button>
             <button id="zoom-in" type="button" aria-label="Zoom in" data-i18n="zoomIn" data-attr="aria-label">+</button>
+            <button id="fullscreen" type="button" data-i18n="fullscreen" aria-pressed="false">Full screen</button>
           </div>
         </div>
       </div>
@@ -68,15 +73,17 @@
           <div id="connections" class="connections"></div>
         </div>
         <div class="replay-panel">
-          <h3 data-i18n="replayTitle">How a phrase is learned</h3>
-          <p data-i18n="replayIntro">Follow three sample conversations that reach the same source page.</p>
-          <ol class="steps" id="steps">
-            <li><button type="button" data-step="1">1</button></li>
-            <li><button type="button" data-step="2">2</button></li>
-            <li><button type="button" data-step="3">3</button></li>
-          </ol>
-          <p id="replay-status" role="status"></p>
-          <button id="replay" class="replay-button" type="button" data-i18n="replay">Replay learning</button>
+          <div class="story">
+            <h3 data-i18n="replayTitle">How a phrase is learned</h3>
+            <p id="replay-status" role="status"></p>
+          </div>
+          <div class="replay-controls">
+            <ol class="steps" id="steps">
+              <li><button type="button" data-step="1">1</button></li>
+              <li><button type="button" data-step="2">2</button></li>
+              <li><button type="button" data-step="3">3</button></li>
+            </ol>
+          </div>
         </div>
       </aside>
     </section>
